@@ -1,0 +1,581 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>영상 분석·라벨 검수</title>
+<style>
+:root{color-scheme:light;--ink:#203344;--muted:#607283;--line:#dce5ec;--accent:#086c75;--bg:#f3f6f9}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.65 system-ui,"Malgun Gothic",sans-serif}
+button,input,select,textarea{font:inherit}button,a,input,select,textarea{outline-offset:3px}button:focus-visible,a:focus-visible{outline:3px solid #43a3cf}
+button,select,input{border:1px solid #bfccd6;border-radius:7px;padding:7px 11px;background:#fff;color:var(--ink)}
+button{cursor:pointer}button:hover{background:#edf6f6}button:disabled{cursor:default;opacity:.5}.primary{background:var(--accent);border-color:var(--accent);color:#fff}.primary:hover{background:#075760}
+a{color:var(--accent)}header{background:#17384a;color:white;padding:22px max(24px,calc((100vw - 1680px)/2))}h1{font-size:23px;line-height:1.4;margin:0}header p{margin:5px 0 0;color:#c5d7df;font-size:14px}
+main{max-width:1680px;margin:auto;padding:20px 24px 190px}h2{font-size:20px;margin:0 0 7px}h3{font-size:17px;margin:0}h4{font-size:15px;margin:0 0 8px}p{margin:6px 0 12px}
+.bar{display:flex;align-items:center;gap:10px;flex-wrap:wrap}.topbar{justify-content:space-between;margin-bottom:16px}.control{display:flex;align-items:center;gap:7px}
+.layout{display:grid;grid-template-columns:minmax(0,13fr) minmax(0,7fr);gap:20px;align-items:start}.layout>*{min-width:0}
+.media{position:sticky;top:16px;max-height:calc(100vh - 112px);overflow:auto;scrollbar-gutter:stable;padding-right:3px}.card{background:white;border:1px solid var(--line);border-radius:12px;padding:19px;margin-bottom:15px}.media .card{padding:15px}
+video{width:100%;height:auto;max-height:none;background:#102536;border-radius:7px}.caption,small,.muted{color:var(--muted);font-size:13px}.caption{margin:8px 0}
+#viewport{overflow:auto;max-height:46vh;background:#102536;border-radius:7px;margin-top:10px}#frame{display:block;width:100%;max-width:100%}#frameIndex{width:85px}
+#frameInfo{font-size:13px;font-variant-numeric:tabular-nums}#mediaTitle{margin-bottom:8px}.frame-toolbar{gap:6px;margin-top:12px}.frame-toolbar button{padding:5px 9px;font-size:13px}
+.tabs{display:flex;gap:6px;border-bottom:1px solid var(--line);margin-bottom:17px}.tabs button{border:0;background:transparent;border-radius:7px 7px 0 0;padding:12px 18px;color:var(--muted);font-weight:650;border-bottom:3px solid transparent}
+.tabs button[aria-selected=true]{color:var(--accent);border-bottom-color:var(--accent);background:#e7f1f2}.panel[hidden]{display:none}
+.section-head{display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap;margin-bottom:12px}.section-title{display:flex;align-items:center;gap:9px}
+.number{color:#638494;font-size:12px;font-weight:700;min-width:21px}.badge{display:inline-block;border-radius:30px;padding:3px 10px;font-size:12px;font-weight:650;background:#edf1f5;color:#536676}.badge.draft{background:#fff2d4;color:#88601a}.badge.yes{background:#e0f3ec;color:#196449}.badge.no{background:#fbe9e6;color:#943d34}.badge.unknown{background:#fff2d4;color:#88601a}
+.lead{color:#4b6375;margin-bottom:17px}.empty{background:#f6f9fb;border:1px dashed #c8d4df;border-radius:8px;padding:16px;color:#587081}.summary-grid{display:flex;gap:10px;flex-wrap:wrap;margin:12px 0}.metric{flex:1;min-width:120px;padding:12px;background:#f2f7f8;border-radius:8px}.metric strong{display:block;font-size:21px;line-height:1.3}.metric span{font-size:12px;color:var(--muted)}
+.field{margin:11px 0;min-width:0}.field-name{display:block;font-size:12px;font-weight:650;color:#597082;margin-bottom:3px}.value{white-space:pre-wrap;overflow-wrap:anywhere;margin:0;line-height:1.8}.field input:not([type=checkbox]),.field select,.field textarea{width:100%;max-width:100%}.field textarea{resize:vertical;border:1px solid #b8c9d5;border-radius:7px;padding:10px;line-height:1.7;min-height:100px;background:#fcfeff;color:var(--ink)}
+.fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 16px}.fields>.wide{grid-column:1/-1}.nested{border-left:2px solid #dce9ed;padding-left:14px}.item{padding:13px 0;border-top:1px solid #e7edf2}.item:first-child{border-top:0;padding-top:0}.item-head{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:8px}
+.chips{display:flex;flex-wrap:wrap;gap:6px}.chip{font-size:12px;color:#0b6474;background:#edf6f8;border:1px solid #cce2e7;border-radius:6px;padding:3px 8px}.chip:hover{background:#d6edef}.danger{font-size:12px;color:#9c4740;padding:4px 9px}.add{font-size:13px;border-style:dashed;color:var(--accent);margin-top:8px}
+details{margin:12px 0}details>summary{cursor:pointer;font-weight:650;color:#425e72;padding:8px 0}.technical{background:#f8fafc;padding:10px 15px;border:1px solid var(--line);border-radius:9px}.note{border-left:3px solid #77a3b2;padding:9px 13px;background:#f0f6f8;font-size:13px;color:#466474}
+.answers{width:100%;table-layout:fixed;border-collapse:collapse;margin:9px 0}.answers th,.answers td{padding:12px 10px;text-align:left;border-bottom:1px solid var(--line);vertical-align:top}.answers th{width:62%;font-size:14px;font-weight:500}.answers select{width:100%}.answers td{min-width:0}
+.timebar{font-size:14px;color:#4b6375;background:#f3f7fa;padding:10px;border-radius:8px;margin:10px 0}.actions{position:fixed;bottom:0;left:0;right:0;border-top:1px solid #cbd8e2;background:rgba(255,255,255,.97);padding:12px 24px;z-index:5;box-shadow:0 -3px 15px #2033440a}.actions-inner{max-width:1632px;margin:auto;display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap}
+#message{white-space:pre-wrap;overflow-wrap:anywhere;font-size:13px;margin-top:10px;padding:12px 15px;background:#e8f2f3;border-radius:8px}#message.error{background:#fcecea;color:#9b302c}#dirtyState{font-size:13px;color:#587081}#dirtyState.unsaved{color:#976318;font-weight:650}.timer-card{font-size:13px}.timer-card input{width:130px}.timer-card select{max-width:160px}input:invalid,textarea:invalid{border-color:#bc3c35}.event-add{display:flex;gap:8px;margin-bottom:16px}
+@media(max-width:1000px){.layout{grid-template-columns:1fr}.media{position:static;max-height:none;overflow:visible;padding-right:0}.media video{max-height:300px}#viewport{max-height:360px}main{padding:16px 16px 160px}.actions{padding:10px 16px}.actions-inner{gap:8px}.fields{grid-template-columns:1fr}.fields>.wide{grid-column:auto}}
+@media(max-width:520px){header{padding:18px 16px}h1{font-size:21px}.card{padding:14px}.answers th,.answers td{padding:9px 4px}.tabs button{padding:11px 13px}.topbar{align-items:flex-start}.topbar .bar{gap:7px}}
+</style>
+</head>
+<body>
+<header><h1>영상 분석·라벨 검수</h1><p>영상의 관찰 내용과 행동 구간을 확인하고, 필요한 내용을 수정해 저장하세요.</p></header>
+<main>
+<div class="bar topbar">
+ <p id="selectionScope" class="note"></p>
+ <div class="bar"><label class="control">행동 <select id="behavior"></select></label><label class="control">영상 <select id="sample"></select></label><button id="reload">저장본 다시 읽기</button></div>
+ <div class="bar"><span id="status"></span><button id="edit" aria-pressed="false">내용 수정</button></div>
+</div>
+<div class="layout">
+ <aside class="media" aria-label="영상과 근거 프레임">
+  <section class="card"><h2 id="mediaTitle">영상</h2><video id="video" controls preload="metadata"></video>
+   <p class="caption" id="videoTimeNote">재생 시간은 영상 시작부터의 경과시간입니다. 라벨에는 원본 PTS를 보존합니다.</p>
+   <div class="bar frame-toolbar"><button id="prev" aria-label="이전 프레임">← 이전</button><label class="control">프레임 <input id="frameIndex" type="number" min="0" value="0"></label><button id="next" aria-label="다음 프레임">다음 →</button><button id="seek">영상에서 이 시점</button></div>
+   <p id="frameInfo" aria-live="polite"></p><div id="viewport"><img id="frame" alt="선택한 원본 프레임"></div>
+   <div class="bar frame-toolbar"><button id="native">원본 크기</button><button id="fit">화면에 맞추기</button></div>
+   <p class="caption">오른쪽의 프레임 번호를 누르면 해당 근거 장면으로 이동합니다. 원본 크기는 스크롤하여 확인할 수 있습니다.</p>
+  </section>
+  <section class="card timer-card"><h3>단계별 시간 기록</h3>
+<p class="caption">시간 기록은 선택 사항입니다. 측정 시작·종료는 수정본 저장 및 검수 상태와 별개로 실행합니다.</p>
+<div class="bar"><label class="control">기록자 <input id="actor" value="user" autocomplete="off"></label>
+<label class="control">단계 <select id="stage"><option value="HUMAN_REVIEW">사용자 검수</option><option value="OBSERVATION_DRAFT">관찰·초안</option><option value="CORRECTION">수정</option></select></label></div>
+<div class="bar"><button id="timer">측정 시작</button><button id="pauseTimer">일시정지</button>
+<select id="pauseReason" aria-label="중단 이유"><option value="USER_WAIT">사용자 대기</option><option value="USAGE_LIMIT">사용량 한도</option><option value="EXPLICIT_PAUSE">일시 중단</option></select>
+<button id="finishTimer">측정 종료</button><button id="cancelTimer">미완료 종료</button><span id="timerInfo">측정 대기</span></div></section>
+ </aside>
+ <section aria-label="분석과 라벨 내용">
+  <div class="tabs" role="tablist" aria-label="검수 내용"><button id="analysisTab" role="tab" aria-selected="true" aria-controls="analysisPanel">분석 내용</button><button id="labelTab" role="tab" aria-selected="false" aria-controls="labelPanel" tabindex="-1">라벨 결과</button></div>
+  <div id="analysisPanel" class="panel" role="tabpanel" aria-labelledby="analysisTab"></div>
+  <div id="labelPanel" class="panel" role="tabpanel" aria-labelledby="labelTab" hidden></div>
+  <details class="technical"><summary>저장 정보·검수 이력</summary><div id="history"></div></details>
+  <p id="message" role="status">영상 목록을 불러오는 중입니다.</p>
+ </section>
+</div>
+</main>
+<footer class="actions"><div class="actions-inner"><div><span id="dirtyState">저장본 확인 중</span><br><span id="revisionInfo" class="muted"></span></div><div class="bar">
+<button id="export">저장본 내보내기</button><button id="resumeCheckpoint">이전 중간 기록 재개</button>
+<label class="control">검수 상태 <select id="reviewStatus"><option value="DRAFT">초안 · 검수 미완료</option><option value="REVIEWED">검수 완료</option></select></label>
+<label class="control">검수자 <input id="reviewer" list="reviewers" placeholder="선택 또는 직접 입력" autocomplete="off" style="width:150px"><datalist id="reviewers"><option value="user"></option></datalist></label>
+<button class="primary" id="save" disabled>검사 후 새 버전 저장</button></div></div>
+<p class="caption" style="max-width:1632px;margin:6px auto 0">전체 프레임·분석·라벨을 확인한 경우 ‘검수 완료’를 선택하세요. 경계 정확도는 ‘내용 수정’에서 이벤트별로 설정합니다. 확정 경계(EXACT)는 검수 완료로 저장할 때 반영됩니다.</p></footer>
+<script>
+'use strict';
+const $=id=>document.getElementById(id);
+let catalog,data,work,sid,loadedSID,dirty=false,editing=false,tick=null,timerFetched=performance.now(),busy=false,activeTab='analysis';
+const categoryNames={source_and_duplicates:'출처·그룹·중복',people:'사람',capture:'촬영 조건',environment:'환경',view_and_visibility:'구도·가시성',behavior:'행동',technical_quality:'기술 품질',evaluation_use:'평가 활용'};
+const eventNames={E01:'약 관련 용기·포장 취급',E02:'물체의 입 전달',E03:'음용 용기의 입 접촉'};
+const checkNames={handling_visible:'용기·포장을 취급하는 모습이 보이는가?',contents_removed_visible:'내용물을 꺼내는 모습이 보이는가?',object_is_medication:'전달하는 물체를 약으로 식별할 수 있는가?',object_transfer_into_mouth_visible:'물체가 입 안으로 전달되는 모습이 보이는가?',container_reaches_mouth:'음용 용기가 입에 도달하는가?',drinking_motion_visible:'음수 동작이 보이는가?'};
+const names={status:'상태',annotation_status:'작성·검수 상태',observations:'관찰 내용',basis:'근거 종류',note:'설명',reason:'판단 이유·한계',frame_indices:'근거 프레임',frame_index:'근거 프레임',start_frame_index:'시작 프레임',end_frame_index:'끝 프레임 (포함)',start_ms:'시작 원본 PTS (ms)',end_ms:'끝 원본 PTS (ms)',source_ms:'원본 PTS (ms)',role:'근거·문맥 역할',check:'판단 항목',boundary_status:'경계 정확도',truncated_start:'영상 시작에서 동작이 잘림',truncated_end:'영상 끝에서 동작이 잘림',subject_key:'대상 인물 식별자',object_key:'대상 물체 식별자',event_id:'이벤트 식별자',event_type:'이벤트 종류',interval:'핵심 행동 구간',context_ranges:'앞뒤 문맥 구간',check_answers:'항목별 판단',evidence:'판단 근거',limitations:'불확실성·관찰 한계',links:'동일 물체·행동 연결',relation:'연결 관계',reference_verification:'검수 후 판정',verification_rule_version:'판정 규칙 버전',coverage:'관찰 범위',reviewed_ranges:'확인한 프레임 범위',event_types:'확인한 이벤트 종류',exhaustive:'전 구간·모든 이벤트 종류 관찰',kind:'관찰 종류',scope:'적용 범위',completion_evidence:'세션 완료 근거',expected_result:'세션 예상 결과',supporting_event_ids:'근거 이벤트',unresolved_conflicts:'미해결 충돌',reviewer_ref:'검수자',reviewed_at_kst:'검수 시각',mode:'검수 방식',independent_review:'독립 검수',history:'검수 이력',format:'기록 형식',video_id:'영상 식별자',source_ref:'원본 참조',source_sha256:'원본 파일 해시',frame_map_ref:'프레임·시간 매핑',label_version:'라벨 버전',guideline_version:'지침 버전',exchange_contract:'교환 계약 자료',final_ground_truth:'최종 정답 여부',evaluation_eligible:'평가 입력 사용 가능',analyst:'분석 기록자',model_identifier:'분석 모델 식별자',observer_ref:'관찰 기록자',recorded_at_kst:'기록 시각',input_set_id:'관찰 입력 묶음',display_width:'관찰 표시 너비',display_height:'관찰 표시 높이',timestamp_semantics:'시각 기록 방식',stage:'작업 단계',seconds:'소요 시간 (초)',actor_ref:'기록자',at_kst:'저장 시각',operation:'저장 작업',previous_sha256:'이전 버전 해시',measurements:'측정된 작업 시간',revision_history:'저장 이력',timing_limitations:'시간 측정 한계',cvat_markers:'이전 구간·근거 표식',marker:'표식 종류',label_source:'라벨 출처',changes:'수정 사항',...categoryNames,...checkNames};
+const words={UNANNOTATED:'미작성',NOT_RUN:'미실시',DRAFT:'초안',REVIEWED:'검수됨',NOT_APPLICABLE:'적용 대상 아님',YES:'예',NO:'아니요',UNKNOWN:'관찰 불가',METADATA:'메타데이터',DIRECT_OBSERVATION:'직접 관찰',APPROXIMATE:'대략적인 경계',EXACT:'검수로 확정한 경계',UNCONFIRMED:'미확정',CONFIRMED:'확인',REFUTED:'기각',UNCERTAIN:'불확실',AI_VISUAL_OBSERVATION:'AI 원본 관찰',HUMAN_VISUAL_OBSERVATION:'사용자 원본 관찰',AI_ASSISTED_HUMAN_REVIEW:'초안 기반 사용자 검수',CLIP_OBSERVATION_WINDOW:'이 클립의 관찰 구간',CONTINUOUS_SESSION:'연속 세션',SUFFICIENT:'충분',NOT_ESTABLISHED:'확립되지 않음',INDETERMINATE:'판단 불가',COMPLETE:'완료',SAME_TRANSFER_OBJECT:'동일한 전달 물체',PRIOR_OBJECT_CONTEXT:'앞선 물체 식별 문맥',APPROACH:'접근',WITHDRAWAL:'떨어짐·이탈',OBSERVATION:'관찰 근거',LIMITATION:'관찰 한계',IDENTITY:'물체 식별',PREPARATION:'준비',ANALYSIS_RECORDING:'분석·기록',HUMAN_REVIEW:'사용자 검수',CORRECTION:'수정',NO_TARGET_EVENT_OBSERVED:'대상 이벤트 관찰되지 않음',NO_E03_OBSERVED:'음용 용기의 입 접촉 관찰되지 않음',NO_E01_E02_OBSERVED:'포장 취급·물체 입 전달 관찰되지 않음',NO_E01_E03_OBSERVED:'포장 취급·음용 용기 입 접촉 관찰되지 않음',LIMITED_POST_ACTION_CONTEXT:'행동 후 문맥 부족',HAND_FACE_CONTACT:'손·얼굴 접촉',POUR_LIKE_ACTION:'따르기 형태의 동작',BRUSHING_LIKE_ACTION:'양치 형태의 동작',MASK_OCCLUSION:'마스크에 의한 가림',GLASSES_HANDLING_AND_WEARING:'안경 취급·착용',HAND_RUBBING_AND_FACE_CONTACT:'손 비빔·얼굴 접촉',CONTAINER_HANDLING_WITH_OCCLUDED_CONTENTS:'내용물이 가려진 용기 취급',NOT_EXPOSED:'실행 환경에서 식별자 미제공'};
+const enums={basis:['METADATA','DIRECT_OBSERVATION'],boundary_status:['APPROXIMATE','EXACT','UNCONFIRMED'],relation:['SAME_TRANSFER_OBJECT'],scope:['CLIP_OBSERVATION_WINDOW','CONTINUOUS_SESSION'],completion_evidence:[null,'SUFFICIENT','NOT_ESTABLISHED','INDETERMINATE'],truncated_start:[null,true,false],truncated_end:[null,true,false]};
+const locked=new Set(['status','annotation_status','event_id','event_type','format','video_id','source_ref','source_sha256','frame_map_ref','label_version','guideline_version','exchange_contract','final_ground_truth','evaluation_eligible','analyst','model_identifier','reference_verification','verification_rule_version','start_ms','end_ms','source_ms','input_set_id']);
+Object.assign(names,{analysis:'분석',label:'라벨',categories:'분석 항목',events:'이벤트',session_label:'세션 판단'});
+Object.assign(words,{SUPPORT:'판단을 뒷받침하는 근거',CANDIDATE:'후보 동작',PRE_ACTION:'행동 이전',POST_ACTION:'행동 이후',PRIOR_HANDLING:'앞선 취급 동작',TRUNCATED_HANDLING_START:'영상 시작 전부터 이어진 취급',TRUNCATED_ACTION_CONTEXT:'영상 경계에서 잘린 행동 문맥',LIQUID_CONTENT_NOT_VISIBLE:'액체 내용물 식별 불가'});
+const wideKeys=new Set(['note','reason','timestamp_semantics','observations','interval','evidence','limitations','context_ranges','reviewed_ranges','links','unresolved_conflicts','auxiliary_open_issues','cvat_markers','questions','alternative_action','key_moments','range','session_boundaries','runtime_track_links','start','end_last_included','frame','limitation','description','change_reason','findings','start_evidence','end_evidence']);
+// Semantic profile (label.behavior_annotation). v0.1 label stays read-only history.
+const profileEventNames={E01:'약 포장·용기 취급',E02:'입 접근·섭취형 동작',E03:'같은 용기의 입 도달·음용형 동작'};
+const profileQuestions={E01:['handling_visible','contents_removed_visible'],E02:['hand_to_mouth_visible','intake_motion_visible'],E03:['container_reaches_mouth','drinking_motion_visible']};
+const profileCheckNames={handling_visible:'약 관련 포장·용기를 조작하는가? (배경 존재·단순 들기 제외)',contents_removed_visible:'내용물을 꺼내거나 받는 형태가 보이는가?',hand_to_mouth_visible:'손·도구가 작업 영역에서 입으로 이동하는가?',intake_motion_visible:'입 부근의 섭취형 동작과 이후 이탈이 보이는가?',container_reaches_mouth:'같은 용기가 대상자의 입에 도달하는가?',drinking_motion_visible:'그 용기로 음용형 동작이 보이는가?'};
+const momentRoles=['START','APPROACH','MOUTH_CONTACT','INTAKE_MOTION','CONTAINER_CONTACT','WITHDRAWAL','END_LAST_INCLUDED','OTHER'];
+Object.assign(names,{semantic_profile:'의미 프로필',behavior_annotation:'새 행동 의미 라벨',profile:'프로필',guideline_ref:'지침 기준',basis:'작성 기준',base_revision:'기준 revision',change_reason:'재작성 이유',authoring:'작성 정보',author_kind:'작성 주체',author_ref:'작성자',prompt:'프롬프트',prompt_id:'프롬프트 ID',sha256:'SHA256',input_set_ids:'관찰 입력 묶음',raw_output:'모델 원문',actors:'원본 내 대상',source_actor_id:'원본 내 대상 ID',description:'설명',runtime_track_links:'실행 추적 ID 연결(근거 필요)',stream_id:'스트림',target_track_id:'실행 추적 ID',same_action_group_id:'같은 행동(시도) 묶음',object_id:'물체 ID',start:'시작 프레임',end_last_included:'마지막 포함 프레임',key_moments:'핵심 시점',frame:'프레임',questions:'질문별 판단',answer:'답',limitation:'관찰 한계',alternative_action:'같은 행동의 대안 설명',type:'대안 종류',state:'관측·작업 상태',relations:'행동 간 관계',from_event_id:'앞 이벤트',to_event_id:'뒤 이벤트',scope_assessments:'범위 판단',assessment_id:'판단 ID',range:'분석 범위',basis_event_ids:'판단 근거 이벤트 (확인: 범위 안 충분한 E02만 · 불확실: 범위와 겹치는 이벤트)',auxiliary_open_issues:'복약 판단과 무관한 보조 미해결 사항 (한 줄에 하나)',session_boundaries:'세션 시작·끝 근거',start_evidence:'시작 근거',end_evidence:'끝 근거',claims_actual_swallowing_or_prescription_match:'실제 삼킴·처방 일치 주장',ai_review:'AI 검토',human_review:'사람 확인',release_freeze:'발행 고정',findings:'검토 내용',pts:'원본 PTS',time_base:'time_base',record_sha256:'기준 정본 해시',revision_file_sha256:'기준 파일 해시',revision_id:'revision'});
+Object.assign(words,{PRESENT:'있음',ABSENT:'없음(충분히 관찰)',NOT_COVERED:'영상 범위 밖',NOT_EVALUATED:'미평가·미작성',NOT_OBSERVED:'관찰되지 않음',CLIP:'이 클립 범위',FULL_SESSION:'전체 세션',NONE:'대안 없음',OBSERVED:'대안 관찰됨',UNRESOLVED:'미해결',DRINKING:'음용',EATING:'음식 섭취',FACE_TOUCH:'얼굴 접촉',COUGH_OR_SNEEZE:'기침·재채기',APPROACH_ABORTED:'접근 중단',OTHER:'기타',SAME_ACTION:'같은 행동',INDEPENDENT_FOLLOWUP:'독립 후속 행동',AI_MODEL:'AI 모델 작성',HUMAN:'사람 작성',CONFIRMED_BY_RUNTIME:'실행 환경에서 확인됨',CAPTURED:'원문 보존',NOT_CAPTURED:'원문 미수집',START:'시작',MOUTH_CONTACT:'입 접촉',INTAKE_MOTION:'섭취형 동작',CONTAINER_CONTACT:'용기 접촉',END_LAST_INCLUDED:'마지막 포함 프레임'});
+for(const key of ['pts','time_base','profile','semantic_profile','claims_actual_swallowing_or_prescription_match','record_sha256','revision_file_sha256','revision_id'])locked.add(key);
+// Profile scope texts are sentences: one entry per line, never split on commas.
+const profileNames={unresolved_conflicts:'이 범위 복약 판단의 미해결 상충 (한 줄에 하나 · 있으면 불확실만 가능)'};
+const lineLists=new Set(['unresolved_conflicts','auxiliary_open_issues']);
+const fieldName=(key,path)=>(inProfile(path)&&profileNames[key])||names[key]||key;
+const isProfile=()=>Boolean(work?.label?.semantic_profile);
+const inProfile=path=>path[0]==='label'&&path[1]==='behavior_annotation';
+function frameRef(i){const f=data.frames[i];return {frame_index:i,pts:f.pts,time_base:f.time_base,source_ms:f.source_ms};}
+function refRange(v){return v&&v.start&&v.end_last_included?rangeText({start_frame_index:v.start.frame_index,end_frame_index:v.end_last_included.frame_index}):'구간 미작성';}
+function profileChoices(path,key){
+ const block=work.label.behavior_annotation;
+ if(key==='answer')return [null,'YES','NO','UNKNOWN'];
+ if(key==='state'&&path.includes('coverage'))return ['PRESENT','ABSENT','NOT_COVERED','UNKNOWN','NOT_EVALUATED'];
+ if(key==='status'&&path.includes('alternative_action'))return [null,'NONE','OBSERVED','UNRESOLVED'];
+ if(key==='type'&&path.includes('alternative_action'))return [null,'DRINKING','EATING','FACE_TOUCH','COUGH_OR_SNEEZE','APPROACH_ABORTED','OTHER'];
+ if(key==='status'&&path.includes('scope_assessments'))return ['CONFIRMED','NOT_OBSERVED','UNCERTAIN','NOT_EVALUATED'];
+ if(key==='relation')return ['SAME_ACTION','INDEPENDENT_FOLLOWUP','UNRESOLVED'];
+ if(key==='scope')return ['CLIP','FULL_SESSION'];
+ if(key==='role'&&path.includes('key_moments'))return momentRoles;
+ if(key==='source_actor_id'&&!path.includes('actors'))return [null,...block.actors.map(a=>a.source_actor_id)];
+ if(key==='from_event_id'||key==='to_event_id')return block.events.map(e=>e.event_id);
+ return undefined;
+}
+function profileTemplate(key){
+ const r=frameRef(Number($('frameIndex').value)),block=work.label.behavior_annotation;
+ if(['evidence','start_evidence','end_evidence'].includes(key))return r;
+ if(key==='key_moments')return {role:'OTHER',frame:r,note:''};
+ if(key==='actors')return {source_actor_id:'actor-'+(block.actors.length+1),description:'',runtime_track_links:[]};
+ if(key==='relations'){const ids=block.events.map(e=>e.event_id);return {from_event_id:ids[0]??null,to_event_id:ids[1]??ids[0]??null,relation:'UNRESOLVED',reason:'',evidence:[r]};}
+ if(key==='scope_assessments')return {assessment_id:'SCOPE-'+(block.scope_assessments.length+1),scope:'CLIP',source_actor_id:block.actors[0]?.source_actor_id??null,range:{start:frameRef(0),end_last_included:frameRef(data.frames.length-1)},status:'NOT_EVALUATED',basis_event_ids:[],unresolved_conflicts:[],auxiliary_open_issues:[],reason:null,session_boundaries:null,claims_actual_swallowing_or_prescription_match:false};
+ return undefined;
+}
+function node(tag,cls,text){const e=document.createElement(tag);if(cls)e.className=cls;if(text!==undefined)e.textContent=text;return e;}
+function button(text,fn,cls){const b=node('button',cls,text);b.type='button';b.onclick=()=>guarded(fn);return b;}
+function translate(value){if(value===null||value===undefined)return '미작성·미확정';if(typeof value==='boolean')return value?'예':'아니요';if(checkNames[value])return checkNames[value];if(eventNames[value])return value+' · '+eventNames[value];return words[value]||String(value);}
+function badge(value){return node('span','badge '+({DRAFT:'draft',YES:'yes',NO:'no',UNKNOWN:'unknown'}[value]||''),translate(value));}
+function say(message,error=false){$('message').textContent=message;$('message').className=error?'error':'';}
+function cleanClone(value){return structuredClone(value);}
+function pathValue(path){return path.reduce((v,k)=>v[k],work);}
+function setValue(path,value){
+ const parent=pathValue(path.slice(0,-1)),key=path.at(-1);parent[key]=value;
+ if(['start_frame_index','end_frame_index','frame_index'].includes(key)&&data.frames[value]){
+  const timeKey={start_frame_index:'start_ms',end_frame_index:'end_ms',frame_index:'source_ms'}[key];
+  if(Object.hasOwn(parent,timeKey))parent[timeKey]=data.frames[value].source_ms;
+  // FrameRef keeps the original rational time; never typed or rounded by hand.
+  if(key==='frame_index'&&Object.hasOwn(parent,'pts')){parent.pts=data.frames[value].pts;parent.time_base=data.frames[value].time_base;}
+ }
+ markDirty();refreshDerived();
+}
+function refreshDerived(){
+ for(const e of document.querySelectorAll('[data-derived-path]'))e.textContent=translate(pathValue(JSON.parse(e.dataset.derivedPath)));
+ for(const e of document.querySelectorAll('[data-event-index]'))e.textContent=rangeText(work.label.events[Number(e.dataset.eventIndex)].interval);
+ for(const e of document.querySelectorAll('[data-bevent-index]'))e.textContent=refRange(work.label.behavior_annotation.events[Number(e.dataset.beventIndex)].interval);
+}
+function markDirty(){dirty=true;updateControls();}
+function timerState(){return data?.timers?.[$('stage').value]||{state:'NOT_RUN'};}
+function updateControls(){
+ for(const id of ['analysisPanel','labelPanel','history'])$(id).inert=busy;
+ const ts=timerState().state,open=['ACTIVE','PAUSED','NEEDS_RECOVERY','INTERRUPTED'].includes(ts);
+ tick=Object.values(data?.timers||{}).some(t=>['ACTIVE','PAUSED','NEEDS_RECOVERY','INTERRUPTED'].includes(t.state))?1:null;
+ $('dirtyState').textContent=dirty?'저장하지 않은 수정 내용이 있습니다':'저장본과 동일합니다';
+ $('dirtyState').className=dirty?'unsaved':'';
+ $('save').disabled=busy||!dirty;
+ $('export').disabled=busy||dirty||!data?.revision_id||tick!==null||isProfile();
+ $('export').title=isProfile()?'새 의미 프로필의 내보내기는 아직 지원하지 않습니다(후속 작업).':'';
+ $('edit').disabled=busy;$('edit').textContent=editing?'읽기 모드로 전환':'내용 수정';
+ $('edit').setAttribute('aria-pressed',String(editing));
+ for(const id of ['behavior','sample','reload','resumeCheckpoint','timer','stage','actor','reviewStatus','reviewer'])$(id).disabled=busy;
+ $('resumeCheckpoint').disabled=busy||!data?.checkpoint||data?.checkpoint_stale;
+ $('timer').textContent=ts==='PAUSED'||ts==='INTERRUPTED'?'측정 재개':ts==='NEEDS_RECOVERY'?'중단 기록 복구':'측정 시작';
+ $('timer').disabled=busy||ts==='ACTIVE';$('pauseTimer').disabled=busy||ts!=='ACTIVE';
+ $('finishTimer').disabled=busy||!['ACTIVE','PAUSED'].includes(ts);
+ $('cancelTimer').disabled=busy||!['ACTIVE','PAUSED'].includes(ts);
+ renderTimer();
+ $('revisionInfo').textContent=data?.revision_id||'아직 유효 초안 없음';
+ if(work&&isProfile())$('status').replaceChildren(badge(work.analysis.status),document.createTextNode(' · 새 의미 사람 확인 '),badge(work.label.behavior_annotation.review.human_review.status));
+ else if(work)$('status').replaceChildren(badge(work.analysis.status),document.createTextNode(' · 라벨 '),badge(work.label.coverage.annotation_status));
+}
+function renderTimer(){
+ const t=timerState(),elapsed=(performance.now()-timerFetched)/1000;
+ const work=(t.known_work_seconds||0)+(t.state==='ACTIVE'?elapsed:0);
+ const wait=(t.known_wait_seconds||0)+(t.state==='PAUSED'?elapsed:0);
+ const state=({ACTIVE:'측정 중',PAUSED:'일시정지',NEEDS_RECOVERY:'서버 재시작 · 복구 필요',INTERRUPTED:'중단됨',COMPLETE:'측정 완료',CANCELLED:'미완료 종료',NOT_RUN:'미실행'})[t.state]||t.state;
+ $('timerInfo').textContent=state+(t.state==='NOT_RUN'?'':' · 작업 '+work.toFixed(1)+'초 · 대기 '+wait.toFixed(1)+'초'+(t.has_unmeasured?' · 미측정 구간 있음':''));
+}
+setInterval(renderTimer,1000);
+const errorMessages={
+ 'Record changed; reload':'다른 창에서 새 버전이 저장됐습니다. 현재 수정 내용을 유지한 채 변경 내용을 확인한 뒤 저장본을 다시 읽어주세요.',
+ 'Reviewer required':'검수 완료로 저장하려면 검수자를 선택하거나 입력하세요.',
+ 'EXACT requires explicit boundary review':'확정 경계(EXACT)를 저장하려면 저장 옆의 검수 상태를 ‘검수 완료’로 선택하고 검수자를 입력하세요. 검수가 끝나지 않았다면 경계를 ‘대략적인 경계’ 또는 ‘미확정’으로 설정하세요.',
+ 'Record changed; reload before saving':'다른 창에서 새 버전이 저장됐습니다. 현재 수정 내용을 다운로드해 보관한 뒤 저장본을 다시 읽어주세요.',
+ 'Invalid source frame range':'시작·끝 프레임을 확인하세요. 시작은 끝보다 늦을 수 없으며 영상 범위 안에 있어야 합니다.',
+ 'Exact boundary requires human review':'확정 경계는 사용자 검수자·검수 시각과 검수 상태가 기록된 이벤트에만 사용할 수 있습니다.',
+ 'Every answer including UNKNOWN needs observed evidence':'각 답변에 해당하는 판단 근거 프레임과 설명을 작성하세요. 관찰 불가 답변에도 근거가 필요합니다.',
+ 'Invalid/unobserved check evidence':'판단 근거의 항목·프레임·역할·설명을 확인하세요. 실제 관찰 기록에 포함된 프레임이어야 합니다.',
+ 'Unobserved event interval':'이벤트 구간에 아직 관찰 기록이 없는 프레임이 포함되어 있습니다.',
+ 'Unreviewed/inapplicable session cannot have an outcome':'미검수 또는 적용 대상이 아닌 세션에는 완료 결과를 지정할 수 없습니다.',
+ 'Unknown supporting event':'세션의 근거 이벤트에 삭제했거나 존재하지 않는 식별자가 있습니다.',
+ 'Actor reference required':'기록자를 입력하세요.',
+ 'Confirmation needs adequate E02 basis only; E01/E03 cannot confirm intake':'범위 판단 ‘확인’은 충분한 E02(입 접근·섭취형 모두 예, 대안 없음, 기각되지 않은 E03나 다른 E02와 같은 행동/미해결 관계 없음)만 근거로 할 수 있습니다. ‘대안 없음’ 자체는 근거가 아니며, E01/E03만으로는 복약 행동을 확인할 수 없습니다.',
+ 'Same-group E02/E03 need an explicit SAME_ACTION relation':'같은 행동 묶음의 E02와 E03에는 ‘같은 행동’ 관계를 기록해야 합니다. 묶음은 실제 같은 물리적 동작일 때만 쓰고, 시간이 가깝거나 같은 복약 과정이라는 이유만으로 묶지 마세요.',
+ 'Same-action verified drinking must be recorded as the E02 alternative':'같은 행동의 E03가 음용으로 확인되면(용기 입 도달·음용 동작 모두 예) E02의 대안 설명을 음용(관찰됨/미해결)으로 기록해야 합니다. 이 E02는 복약 확인 근거가 될 수 없습니다. 별개의 후속 음용이면 묶음을 나누고 ‘독립 후속 행동’ 관계를 쓰세요.',
+ 'An unrejected same-action E03 contradicts E02 alternative NONE':'같은 행동의 E03가 아니요/아니요로 기각되지 않았으므로 E02의 대안을 ‘대안 없음’으로 둘 수 없습니다. 음용 여부가 미해결이면 대안을 ‘미해결’로 기록하고 범위 판단은 ‘불확실’로 두세요.',
+ 'Unresolved conflicts prevent NOT_OBSERVED; record UNCERTAIN':'이 범위 복약 판단의 미해결 상충이 있으면 ‘관찰되지 않음’으로 저장할 수 없습니다. 상충을 유지하려면 ‘불확실’로 기록하고, 판단과 무관한 사항은 ‘보조 미해결 사항’에 적으세요.',
+ 'Unresolved E02 candidates prevent NOT_OBSERVED':'분석 범위와 겹치는 E02(범위 앞에서 시작하거나 뒤로 이어지는 것 포함) 중 섭취형 동작 아니요·관찰 불가 없음·대안 관찰됨으로 기각되지 않은 후보가 있어 ‘관찰되지 않음’으로 저장할 수 없습니다. ‘불확실’로 기록하세요.',
+ 'Basis event outside the assessed actor/range':'판단 근거 이벤트를 확인하세요. ‘확인’의 근거 E02는 같은 대상이며 분석 범위 안에 완전히 포함되어야 하고, 다른 판단이 인용하는 이벤트도 같은 대상이며 범위와 겹쳐야 합니다. 이벤트 경계를 범위에 맞춰 자르지 마세요.',
+ 'Unknown basis event or invalid conflicts/auxiliary issues':'판단 근거 이벤트 ID, 미해결 상충, 보조 미해결 사항을 확인하세요. 빈 항목은 둘 수 없습니다.',
+ 'Coverage state contradicts events':'이벤트 유형별 관측 상태를 확인하세요. 이벤트가 있으면 ‘있음’, 없으면 없음/영상 범위 밖/판단 불가 중 하나여야 합니다.',
+ 'Invalid/unfinished coverage state':'저장본에는 ‘미평가·미작성’ 관측 상태를 둘 수 없습니다. 작업 중이면 중간 기록으로 남기세요.',
+ 'Invalid/missing answer':'모든 질문에 예/아니요/관찰 불가 중 하나를 선택하세요. 미작성은 중간 기록에만 둘 수 있습니다.',
+ 'UNKNOWN needs its observed limitation':'관찰 불가 답변에는 관찰 한계를 적어주세요.',
+ 'Protected profile field changed: review':'검수 상태는 저장 옆의 검수 상태·검수자로만 바꿀 수 있습니다.'
+};
+async function request(url,body){const r=await fetch(url,body?{method:'POST',headers:{'Content-Type':'application/json','X-Workbench-Token':catalog.token},body:JSON.stringify(body)}:{});const j=await r.json();if(!r.ok)throw Error(errorMessages[j.error]||j.error||r.status);return j;}
+async function guarded(fn){try{await fn();}catch(e){say(e.message,true);}}
+function validForms(){for(const e of document.querySelectorAll('[data-path]'))if(e.reportValidity&&!e.reportValidity())return false;return true;}
+function frameButton(index){return button('프레임 '+index,()=>jump(index),'chip');}
+let pendingVideoSeek=null;
+function jump(index){if(!Number.isInteger(index)||!data.frames[index])throw Error('영상 범위에 없는 프레임입니다.');$('frameIndex').value=index;showFrame();const video=$('video'),target=(data.frames[index].player_elapsed_ms+(data.video_time_offset_ms||0))/1000;pendingVideoSeek=!Number.isFinite(video.duration)||target>video.duration?target:null;video.currentTime=target;}
+// Some original MP4s expose stream duration before their nonzero PTS endpoint.
+$('video').addEventListener('durationchange',()=>{const video=$('video');if(pendingVideoSeek!==null&&Number.isFinite(video.duration)){const target=pendingVideoSeek;if(video.duration>=target)pendingVideoSeek=null;if(video.duration>video.currentTime)video.currentTime=Math.min(target,video.duration);}});
+function chips(values){const wrap=node('div','chips');for(const i of values)wrap.append(frameButton(i));return wrap;}
+function fieldControl(value,path,key){
+ let choices=Object.hasOwn(checkNames,key)?[null,'YES','NO','UNKNOWN']:enums[key];
+ if(key==='check'&&path.includes('events'))choices=Object.keys(work.label.events[path[path.indexOf('events')+1]].check_answers);
+ if(key==='role')choices=['SUPPORT','CANDIDATE','LIMITATION','OBSERVATION','IDENTITY','APPROACH','WITHDRAWAL','PRE_ACTION','POST_ACTION','PRIOR_HANDLING','PRIOR_OBJECT_CONTEXT'];
+ if(path.includes('links')&&key==='status')choices=['CONFIRMED','UNCONFIRMED'];
+ if(inProfile(path)){const p=profileChoices(path,key);if(p!==undefined)choices=p;}
+ if(typeof value==='boolean'&&!choices)choices=[true,false];
+ let input;
+ if(choices){
+  input=node('select');const all=choices.includes(value)?choices:[value,...choices];
+  for(const choice of all){const o=node('option','',translate(choice));o.value=JSON.stringify(choice);input.append(o);}
+  input.value=JSON.stringify(value);input.onchange=()=>setValue(path,JSON.parse(input.value));
+ }else{
+  const number=typeof value==='number';
+  input=node(number?'input':(['note','reason','timestamp_semantics','limitation','description','change_reason'].includes(key)?'textarea':'input'));
+  if(input.tagName==='INPUT')input.type=number?'number':'text';
+  input.value=value===null?'':String(value);
+  if(number){input.step='any';if(key.endsWith('frame_index')){input.min='0';input.max=String(data.frames.length-1);input.step='1';}}
+  input.oninput=()=>{
+   input.setCustomValidity('');
+   if(number&&(!input.value.trim()||!Number.isFinite(Number(input.value)))){input.setCustomValidity('숫자를 입력하세요.');return;}
+   if(!input.checkValidity())return;
+   setValue(path,number?Number(input.value):input.value===''&&value===null?null:input.value);
+  };
+ }
+ input.dataset.path=path.join('.');input.setAttribute('aria-label',path.map(k=>names[k]||k).join(' / '));
+ return input;
+}
+function template(key,path){
+ if(inProfile(path))return profileTemplate(key);
+ const index=Number($('frameIndex').value),f=data.frames[index],range={start_frame_index:index,end_frame_index:index,start_ms:f.source_ms,end_ms:f.source_ms};
+ const eventIndex=path.indexOf('events'),event=eventIndex>=0?work.label.events[path[eventIndex+1]]:null;
+ const check=event?Object.keys(event.check_answers)[0]:null;
+ if(key==='observations'&&path[0]==='analysis')return {basis:'DIRECT_OBSERVATION',note:'',frame_indices:[index]};
+ if(key==='observations')return {...range,kind:'NO_TARGET_EVENT_OBSERVED',reason:''};
+ if(key==='context_ranges')return {...range,role:'APPROACH'};
+ if(key==='reviewed_ranges')return range;
+ if(key==='evidence')return {check,frame_index:index,source_ms:f.source_ms,role:'OBSERVATION',note:''};
+ if(key==='limitations')return {check,reason:'',frame_indices:[index]};
+ if(key==='links')return {relation:'SAME_TRANSFER_OBJECT',status:'UNCONFIRMED',note:'',frame_indices:[index]};
+ return undefined;
+}
+function primitiveArray(values,path,key,canEdit){
+ if(canEdit){
+  const lines=inProfile(path)&&lineLists.has(key);
+  const input=node(lines?'textarea':'input');if(!lines)input.type='text';input.value=values.join(lines?'\n':', ');input.dataset.path=path.join('.');input.setAttribute('aria-label',path.map(k=>names[k]||k).join(' / '));
+  input.oninput=()=>{
+   input.setCustomValidity('');
+   const parts=lines?input.value.split('\n').map(v=>v.trim()).filter(Boolean):input.value.trim()?input.value.split(',').map(v=>v.trim()):[];
+   if(key==='frame_indices'){
+    if(parts.some(v=>!/^\d+$/.test(v)||Number(v)>=data.frames.length)){input.setCustomValidity('영상 범위 안의 프레임 번호를 쉼표로 구분하세요.');return;}
+    setValue(path,parts.map(Number));
+   }else setValue(path,parts);
+  };return input;
+ }
+ if(key==='frame_indices')return values.length?chips(values):node('span','muted','연결된 프레임 없음');
+ return node('p','value',values.length?values.map(translate).join(' · '):'기록 없음');
+}
+function arrayView(values,path,key,canEdit){
+ const wrap=node('div');
+ const sample=template(key,path);
+ if((values.length&&values.every(v=>v===null||typeof v!=='object'))||key==='frame_indices'||(!values.length&&['event_types','supporting_event_ids','unresolved_conflicts','auxiliary_open_issues','basis_event_ids','input_set_ids'].includes(key))){
+  return primitiveArray(values,path,key,canEdit);
+ }
+ if(!values.length)wrap.append(node('p','muted','기록 없음'));
+ values.forEach((value,index)=>{
+  const item=node('div','item');
+  if(canEdit&&sample!==undefined){const head=node('div','item-head');head.append(node('span','muted',String(index+1)));head.append(button('항목 제거',()=>{values.splice(index,1);markDirty();render();},'danger'));item.append(head);}
+  item.append(renderValue(value,[...path,index],key,canEdit));wrap.append(item);
+ });
+ if(canEdit&&sample!==undefined)wrap.append(button('＋ '+(names[key]||key)+' 추가',()=>{values.push(template(key,path));markDirty();render();},'add'));
+ return wrap;
+}
+function renderValue(value,path,key,editable=true){
+ const canEdit=editing&&editable&&(!locked.has(key)||(key==='status'&&['links','alternative_action','scope_assessments'].some(k=>path.includes(k))));
+ if(key==='session_boundaries'&&value===null){
+  const wrap=node('div');wrap.append(node('p','muted','없음 · 이 클립 범위 판단에는 세션 경계가 필요하지 않습니다.'));
+  if(canEdit)wrap.append(button('＋ 전체 세션 시작·끝 근거 추가',()=>{setValue(path,{start_evidence:[],end_evidence:[],reason:''});render();},'add'));
+  return wrap;
+ }
+ if(Array.isArray(value))return arrayView(value,path,key,canEdit);
+ if(value!==null&&typeof value==='object')return objectView(value,path,editable);
+ if(canEdit)return fieldControl(value,path,key);
+ if(['frame_index','start_frame_index','end_frame_index'].includes(key)&&Number.isInteger(value))return frameButton(value);
+ if(['status','annotation_status','boundary_status'].includes(key)||Object.hasOwn(checkNames,key))return badge(value);
+ const text=node('p','value',translate(value));
+ if(['start_ms','end_ms','source_ms','reference_verification','pts','time_base'].includes(key))text.dataset.derivedPath=JSON.stringify(path);
+ return text;
+}
+function objectView(value,path,editable=true,omit=[]){
+ const box=node('div','fields');
+ for(const [key,v]of Object.entries(value)){
+  if(omit.includes(key))continue;
+  const field=node('div','field'+(wideKeys.has(key)||Array.isArray(v)||v!==null&&typeof v==='object'?' wide':''));
+  field.append(node('span','field-name',fieldName(key,path)),renderValue(v,[...path,key],key,editable));box.append(field);
+ }
+ return box;
+}
+function folded(title,content){const details=node('details');details.append(node('summary','',title),content);return details;}
+function section(title,subtitle){const card=node('section','card');card.append(node('h2','',title));if(subtitle)card.append(node('p','lead',subtitle));return card;}
+function rangeText(range){
+ if(!range)return '구간 미작성';
+ const a=data.frames[range.start_frame_index],b=data.frames[range.end_frame_index];
+ return a&&b?'프레임 '+range.start_frame_index+'–'+range.end_frame_index+' · 영상 '+(a.player_elapsed_ms/1000).toFixed(3)+'–'+(b.player_elapsed_ms/1000).toFixed(3)+'초':'구간을 확인하세요';
+}
+function renderAnalysis(){
+ const panel=$('analysisPanel');panel.replaceChildren();
+ panel.append(node('h2','','분석 내용'),node('p','lead','영상에서 관찰한 내용과 촬영·환경 조건을 8개 항목으로 정리했습니다.'));
+ const cats=work.analysis.categories;
+ Object.entries(cats).forEach(([key,cat],index)=>{
+  const card=node('section','card'),head=node('div','section-head'),title=node('div','section-title');
+  title.append(node('span','number',String(index+1).padStart(2,'0')),node('h3','',categoryNames[key]||key));head.append(title,badge(cat.status));card.append(head);
+  if(!cat.observations.length&&!editing)card.append(node('div','empty','아직 분석 내용이 작성되지 않았습니다.'));
+  else card.append(arrayView(cat.observations,['analysis','categories',key,'observations'],'observations',editing));
+  const extra=Object.keys(cat).filter(k=>!['status','observations'].includes(k));
+  if(extra.length)card.append(objectView(cat,['analysis','categories',key],true,['status','observations']));
+  panel.append(card);
+ });
+ const log=node('div');work.analysis.observation_log.forEach((entry,index)=>{
+  const item=node('div','item');item.append(node('h4','',rangeText(entry)));
+  item.append(node('p','value',entry.note||'설명 없음'),chips([entry.start_frame_index,entry.end_frame_index]));
+  item.append(folded('관찰 기록 정보',objectView(entry,['analysis','observation_log',index],false,['note'])));log.append(item);
+ });
+ if(!work.analysis.observation_log.length)log.append(node('p','muted','실제 관찰 기록이 없습니다.'));
+ panel.append(folded('전체 프레임 관찰 기록 · '+work.analysis.observation_log.length+'묶음',log));
+ panel.append(folded('분석 기록 정보',objectView(work.analysis,['analysis'],false,['categories','observation_log'])));
+}
+function renderEvent(event,index){
+ const path=['label','events',index],card=node('section','card'),head=node('div','section-head');
+ head.append(node('h3','',event.event_type+' · '+(eventNames[event.event_type]||'이벤트')),badge(event.annotation_status));
+ if(editing)head.append(button('후보 제거',()=>{work.label.events.splice(index,1);markDirty();render();},'danger'));
+ const timebar=node('div','timebar',rangeText(event.interval));timebar.dataset.eventIndex=String(index);
+ card.append(head,node('p','muted',event.event_id),timebar);
+ card.append(renderValue(event.interval,[...path,'interval'],'interval'));
+ const table=node('table','answers'),body=node('tbody');table.append(body);
+ for(const [check,answer] of Object.entries(event.check_answers)){
+  const tr=node('tr');tr.append(node('th','',checkNames[check]||check));
+  const td=node('td');td.append(editing?fieldControl(answer,[...path,'check_answers',check],check):badge(answer));tr.append(td);body.append(tr);
+ }
+ card.append(table);
+ for(const key of ['evidence','limitations','context_ranges','links']){
+  const block=node('div','field');block.append(node('h4','',names[key]),arrayView(event[key],[...path,key],key,editing));card.append(block);
+ }
+ card.append(folded('대상·판정·추가 정보',objectView(event,path,true,['interval','event_type','event_id','annotation_status','check_answers','evidence','limitations','context_ranges','links'])));
+ return card;
+}
+function addEvent(kind){
+ const n=work.label.events.length+1;let id='USER-'+kind+'-'+n;while(work.label.events.some(e=>e.event_id===id))id+='n';
+ const i=Number($('frameIndex').value),checks={E01:['handling_visible','contents_removed_visible'],E02:['object_is_medication','object_transfer_into_mouth_visible'],E03:['container_reaches_mouth','drinking_motion_visible']}[kind];
+ work.label.events.push({event_id:id,event_type:kind,annotation_status:'DRAFT',subject_key:null,object_key:null,
+ interval:{start_frame_index:i,end_frame_index:i,start_ms:data.frames[i].source_ms,end_ms:data.frames[i].source_ms,boundary_status:'APPROXIMATE',truncated_start:null,truncated_end:null},
+ context_ranges:[],check_answers:Object.fromEntries(checks.map(k=>[k,null])),evidence:[],limitations:[],links:[],reference_verification:null,verification_rule_version:'architecture-2-4-current'});
+ markDirty();render();
+}
+function renderLabels(){
+ const panel=$('labelPanel');panel.replaceChildren();const label=work.label;
+ const intro=section('라벨 결과','행동 후보의 구간·항목별 판단과 근거입니다. 후보 수는 실제 복용 횟수를 뜻하지 않습니다.');
+ const metrics=node('div','summary-grid');
+ for(const [value,title]of [[label.events.length,'이벤트 후보'],[label.observations.length,'관찰·한계 기록'],[translate(label.coverage.annotation_status),'라벨 상태']]){
+  const cell=node('div','metric');cell.append(node('strong','',String(value)),node('span','',title));metrics.append(cell);
+ }
+ intro.append(metrics,node('p','note','예 · 아니요 · 관찰 불가 · 미작성은 서로 다른 값입니다.'));
+ intro.append(folded('관찰 범위와 누락 확인',objectView(label.coverage,['label','coverage'])));panel.append(intro);
+ if(editing){
+  const controls=node('div','event-add'),select=node('select');select.setAttribute('aria-label','추가할 이벤트 종류');
+  for(const [key,text]of Object.entries(eventNames)){const o=node('option','',key+' · '+text);o.value=key;select.append(o);}
+  controls.append(select,button('＋ 이벤트 후보 추가',()=>addEvent(select.value),'add'));panel.append(controls);
+ }
+ if(!label.events.length)panel.append(node('div','card empty',label.coverage.annotation_status==='UNANNOTATED'?'아직 라벨을 작성하지 않았습니다. 이벤트가 없다고 판단한 상태가 아닙니다.':'기록된 이벤트 후보가 없습니다. 아래 관찰 내용과 가시성 한계를 함께 확인하세요.'));
+ label.events.forEach((event,index)=>panel.append(renderEvent(event,index)));
+ const observations=section('관찰 내용·이벤트 부재·한계','대상 이벤트가 관찰되지 않은 구간과 가림, 앞뒤 문맥의 부족 등을 기록합니다.');
+ observations.append(arrayView(label.observations,['label','observations'],'observations',editing));panel.append(observations);
+ const session=section('세션 판단','개별 클립의 관찰과 전체 복약 세션의 완료 여부를 구분합니다.');
+ session.append(objectView(label.session_label,['label','session_label'],false));panel.append(session);
+ panel.append(folded('라벨 기록 정보',objectView(label,['label'],false,['coverage','events','observations','session_label','review'])));
+}
+function renderBehaviorEvent(event,index){
+ const path=['label','behavior_annotation','events',index],card=node('section','card'),head=node('div','section-head');
+ head.append(node('h3','',event.event_type+' · '+(profileEventNames[event.event_type]||'이벤트')),node('span','badge','대상 '+(event.source_actor_id??'미지정')+' · 묶음 '+event.same_action_group_id));
+ if(editing)head.append(button('후보 제거',()=>{work.label.behavior_annotation.events.splice(index,1);markDirty();render();},'danger'));
+ const timebar=node('div','timebar',refRange(event.interval));timebar.dataset.beventIndex=String(index);
+ card.append(head,node('p','muted',event.event_id),timebar,renderValue(event.interval,[...path,'interval'],'interval'));
+ const table=node('table','answers'),body=node('tbody');table.append(body);
+ for(const [q,value] of Object.entries(event.questions)){
+  const tr=node('tr');tr.append(node('th','',profileCheckNames[q]||q));
+  const td=node('td');td.append(editing?fieldControl(value.answer,[...path,'questions',q,'answer'],'answer'):badge(value.answer));tr.append(td);body.append(tr);
+ }
+ card.append(table);
+ for(const q of Object.keys(event.questions))card.append(folded('근거·이유·한계 · '+(profileCheckNames[q]||q),objectView(event.questions[q],[...path,'questions',q],true,['answer'])));
+ if(event.alternative_action){const block=node('div','field');block.append(node('h4','',names.alternative_action),objectView(event.alternative_action,[...path,'alternative_action']));card.append(block);}
+ const moments=node('div','field');moments.append(node('h4','',names.key_moments),arrayView(event.key_moments,[...path,'key_moments'],'key_moments',editing));card.append(moments);
+ card.append(folded('대상·묶음·추가 정보',objectView(event,path,true,['interval','event_type','event_id','questions','alternative_action','key_moments'])));
+ return card;
+}
+function addBehaviorEvent(kind){
+ const block=work.label.behavior_annotation,r=frameRef(Number($('frameIndex').value));
+ let id='USER-'+kind+'-'+(block.events.length+1);while(block.events.some(e=>e.event_id===id))id+='n';
+ const event={event_id:id,event_type:kind,source_actor_id:block.actors[0]?.source_actor_id??null,same_action_group_id:'action-'+(block.events.length+1),object_id:null,
+  interval:{start:r,end_last_included:{...r},boundary_status:'APPROXIMATE',truncated_start:null,truncated_end:null},key_moments:[],
+  questions:Object.fromEntries(profileQuestions[kind].map(k=>[k,{answer:null,evidence:[],reason:null,limitation:null}]))};
+ if(kind==='E02')event.alternative_action={status:null,type:null,evidence:[],reason:null,limitation:null};
+ block.events.push(event);markDirty();render();
+}
+function renderBehaviorLabels(){
+ const panel=$('labelPanel');panel.replaceChildren();const block=work.label.behavior_annotation,base=['label','behavior_annotation'];
+ const intro=section('라벨 결과 · 새 행동 의미','프로필 '+work.label.semantic_profile+' · 질문의 답(예·아니요·관찰 불가·미작성)과 이벤트 유형별 관측·작업 상태(있음·없음·영상 범위 밖·판단 불가·미평가)를 구분합니다.');
+ const metrics=node('div','summary-grid');
+ for(const [value,title]of [[block.events.length,'이벤트 후보'],[block.actors.length,'원본 내 대상'],[translate(block.review.human_review.status),'사람 확인'],[translate(block.review.ai_review.status),'AI 검토']]){
+  const cell=node('div','metric');cell.append(node('strong','',String(value)),node('span','',title));metrics.append(cell);
+ }
+ intro.append(metrics,node('p','note','v0.1의 E02 질문(약 식별·입 안 전달)은 이 프로필의 편집 대상이 아닙니다. 이전 의미의 라벨·검수는 아래 이력에 읽기 전용으로 보존되며 새 의미의 검수로 승계되지 않습니다. 짧은 클립에서 관찰되지 않음은 전체 세션의 미복약을 뜻하지 않습니다.'));
+ panel.append(intro);
+ const actors=section('원본 내 대상','source_actor_id는 이 원본 안의 관찰 대상입니다. 실행 환경의 추적 ID와 자동으로 같지 않으며, 연결에는 근거가 필요합니다.');
+ actors.append(arrayView(block.actors,[...base,'actors'],'actors',editing));panel.append(actors);
+ const coverage=section('이벤트 유형별 관측 상태','이벤트가 없을 때 질문을 ‘아니요’로 채우지 않고, 없음(충분히 관찰)·영상 범위 밖·판단 불가를 근거와 함께 기록합니다.');
+ coverage.append(objectView(block.coverage,[...base,'coverage']));panel.append(coverage);
+ if(editing){
+  const controls=node('div','event-add'),select=node('select');select.setAttribute('aria-label','추가할 이벤트 종류');
+  for(const [key,text]of Object.entries(profileEventNames)){const o=node('option','',key+' · '+text);o.value=key;select.append(o);}
+  controls.append(select,button('＋ 이벤트 후보 추가',()=>addBehaviorEvent(select.value),'add'));panel.append(controls);
+ }
+ if(!block.events.length)panel.append(node('div','card empty','기록된 이벤트 후보가 없습니다. 위 관측 상태와 근거를 함께 확인하세요.'));
+ block.events.forEach((event,index)=>panel.append(renderBehaviorEvent(event,index)));
+ const relations=section('행동 간 관계','같은 행동의 다른 설명(같은 행동)과 복약 뒤 별개의 음용(독립 후속 행동)을 구분합니다. 시간 근접만으로 같은 행동이라고 연결하지 않습니다.');
+ relations.append(arrayView(block.relations,[...base,'relations'],'relations',editing));panel.append(relations);
+ const scopes=section('범위 판단','분석 범위(이 클립/전체 세션)·대상별로 확인·관찰되지 않음·불확실·미작성을 기록합니다. 확인은 충분한 E02만 근거로 합니다.');
+ scopes.append(arrayView(block.scope_assessments,[...base,'scope_assessments'],'scope_assessments',editing));panel.append(scopes);
+ const review=section('작성·AI 검토·사람 확인','각 단계는 별도 상태입니다. 사람 확인은 저장 옆 검수 상태로 기록됩니다.');
+ review.append(objectView(block.review,[...base,'review'],false));panel.append(review);
+ panel.append(folded('작성 정보·기준 revision·지침',objectView(block,base,false,['observation_log','actors','events','coverage','relations','scope_assessments','review'])));
+ const log=node('div');block.observation_log.forEach((entry,index)=>{const item=node('div','item');item.append(node('h4','',rangeText(entry)),node('p','value',entry.note||'설명 없음'));item.append(folded('관찰 기록 정보',objectView(entry,[...base,'observation_log',index],false,['note'])));log.append(item);});
+ if(!block.observation_log.length)log.append(node('p','muted','새 의미의 실제 관찰 기록이 없습니다. 이전 관찰 로그는 새 관찰로 쓰지 않습니다.'));
+ panel.append(folded('새 의미 전체 프레임 관찰 기록 · '+block.observation_log.length+'묶음',log));
+ panel.append(folded('이전 의미(v0.1) 라벨 이력 · 읽기 전용',objectView(work.label,['label'],false,['semantic_profile','behavior_annotation'])));
+}
+function render(){
+ if(!work)return;renderAnalysis();isProfile()?renderBehaviorLabels():renderLabels();
+ const history=$('history');history.replaceChildren();
+ history.append(node('p','note','수정 내용과 선택한 검수 상태·검수자를 한 버전에 함께 저장합니다. 이전 버전과 화면에 표시하지 않는 필드도 보존합니다.'));
+ if(isProfile())history.append(folded('새 의미 사람 확인 상태·이력',objectView(work.label.behavior_annotation.review.human_review,['label','behavior_annotation','review','human_review'],false)));
+ history.append(folded(isProfile()?'v0.1 사용자 검수 이력 · 새 의미로 승계되지 않음':'사용자 검수 상태·이력',objectView(work.label.review,['label','review'],false)));
+ history.append(node('p','note','상세 시간은 실행 원장 '+catalog.run_id+'에 저장됩니다.')); history.append(folded('기존 시간 필드',renderValue(work.measurements,['measurements'],'measurements',false)));
+ history.append(folded('저장 이력',renderValue(work.revision_history,['revision_history'],'revision_history',false)));
+ history.append(objectView(work,[],false,['analysis','label','measurements','revision_history']));
+ setTab(activeTab);updateControls();
+}
+function setTab(tab){
+ activeTab=tab;
+ for(const key of ['analysis','label']){$(key+'Tab').setAttribute('aria-selected',String(key===tab));$(key+'Tab').tabIndex=key===tab?0:-1;$(key+'Panel').hidden=key!==tab;}
+}
+function checkLeave(){return !dirty||confirm('저장하지 않은 수정 내용이 있습니다. 버리고 이동하시겠습니까?');}
+function setSaveSelection(record){
+ const human=record.label.semantic_profile?record.label.behavior_annotation.review.human_review:null;
+ $('reviewStatus').value=(human?human.status==='REVIEWED':record.label.coverage.annotation_status==='REVIEWED')?'REVIEWED':'DRAFT';
+ $('reviewer').value=(human?human.reviewer_ref:record.label.review.reviewer_ref)||'user';
+ if(!Array.from($('reviewers').options).some(o=>o.value===$('reviewer').value)){
+  const option=node('option');option.value=$('reviewer').value;$('reviewers').append(option);
+ }
+}
+async function loadSample(target){
+ busy=true;updateControls();
+ try{
+  const response=await request('/api/record/'+target);
+  data=response;timerFetched=performance.now();sid=target;loadedSID=target;work=cleanClone(response.record);dirty=false;editing=false;
+  syncSelection();
+  pendingVideoSeek=null;$('video').src='/api/video/'+sid;setSaveSelection(work);
+  $('videoTimeNote').textContent=data.video_time_offset_ms?'원본 영상의 재생 시계에는 시작 오프셋 '+(data.video_time_offset_ms/1000).toFixed(3)+'초가 포함됩니다. 프레임의 경과시간은 아래에 따로 표시합니다.':'재생 시간은 영상 시작부터의 경과시간입니다. 라벨에는 원본 PTS를 보존합니다.';
+  $('frameIndex').max=data.frames.length-1;$('frameIndex').value=0;
+  $('mediaTitle').textContent=data.filename+' · '+sid+' · '+data.frames.length+'프레임';
+  render();showFrame();say(data.revision_id?'저장된 revision을 불러왔습니다.': '아직 유효 초안이 없습니다. 전체 내용을 작성한 뒤 저장하세요.');
+ }finally{busy=false;updateControls();}
+}
+async function changeSample(target){
+ if(tick!==null){syncSelection();throw Error('시간 측정을 종료하고 저장한 뒤 영상을 이동하세요.');}
+ if(!checkLeave()){syncSelection();return;}
+ try{await loadSample(target);}catch(e){syncSelection();throw e;}
+}
+function behaviorOf(id){return catalog.classifications[id].behavior;}
+function fillBehaviors(){
+ $('behavior').replaceChildren(...['',...new Set(catalog.ids.map(behaviorOf))].map(value=>{
+  const o=node('option','',value?value.replaceAll('_',' '):'전체 행동');o.value=value;return o;
+ }));
+}
+function fillSamples(){
+ $('sample').replaceChildren(...catalog.ids.filter(id=>!$('behavior').value||behaviorOf(id)===$('behavior').value).map(id=>{
+  const o=node('option','',id);o.value=id;return o;
+ }));
+}
+function syncSelection(){
+ if(!loadedSID)return;
+ if($('behavior').value)$('behavior').value=behaviorOf(loadedSID);fillSamples();$('sample').value=loadedSID;
+}
+function showFrame(){
+ if(!data)return;const raw=Number($('frameIndex').value),i=Math.max(0,Math.min(data.frames.length-1,Math.trunc(Number.isFinite(raw)?raw:0)));
+ $('frameIndex').value=i;$('frame').src='/api/frame/'+sid+'/'+i;displayInfo();
+}
+function displayInfo(){
+ if(!data)return;const i=Number($('frameIndex').value),f=data.frames[i];if(!f)return;
+ $('frameInfo').textContent='프레임 '+i+'/'+(data.frames.length-1)+' · 원본 PTS '+f.source_ms.toFixed(2)+' ms · 경과 '+(f.player_elapsed_ms/1000).toFixed(3)+'초 · 원본 '+data.width+'×'+data.height+' / 표시 '+Math.round($('frame').getBoundingClientRect().width)+'×'+Math.round($('frame').getBoundingClientRect().height);
+}
+$('analysisTab').onclick=()=>{if(validForms())setTab('analysis');};$('labelTab').onclick=()=>{if(validForms())setTab('label');};
+for(const id of ['analysisTab','labelTab'])$(id).onkeydown=e=>{if(['ArrowLeft','ArrowRight','Home','End'].includes(e.key)){e.preventDefault();const key=e.key==='Home'?'analysis':e.key==='End'?'label':activeTab==='analysis'?'label':'analysis';setTab(key);$(key+'Tab').focus();}};
+$('sample').onchange=()=>guarded(()=>changeSample($('sample').value));
+$('behavior').onchange=()=>guarded(()=>changeSample(catalog.ids.find(id=>!$('behavior').value||behaviorOf(id)===$('behavior').value)));
+$('reload').onclick=()=>guarded(()=>changeSample(loadedSID));
+$('edit').onclick=()=>{if(!validForms())return;editing=!editing;render();say(editing?'내용을 수정한 뒤 새 버전으로 저장하세요. 미작성·관찰 불가를 구분하고 답변의 근거도 함께 확인하세요.':'읽기 모드입니다. 수정 내용은 저장할 때 반영됩니다.');};
+$('frameIndex').oninput=showFrame;$('frameIndex').onchange=showFrame;
+$('prev').onclick=()=>{$('frameIndex').value=Number($('frameIndex').value)-1;showFrame();};
+$('next').onclick=()=>{$('frameIndex').value=Number($('frameIndex').value)+1;showFrame();};
+$('native').onclick=()=>{$('frame').style.width='auto';$('frame').style.maxWidth='none';displayInfo();};
+$('fit').onclick=()=>{$('frame').style.width='100%';$('frame').style.maxWidth='100%';displayInfo();};
+$('frame').onload=displayInfo;window.addEventListener('resize',displayInfo);
+$('seek').onclick=()=>guarded(()=>{showFrame();jump(Number($('frameIndex').value));});
+async function refreshTimers(){
+ const current=await request('/api/record/'+sid);data.timers=current.timers;timerFetched=performance.now();data.checkpoint_stale=current.checkpoint_stale;updateControls();
+}
+async function timerAction(action,reason){
+ await request('/api/timer/'+sid,{stage:$('stage').value,actor_ref:$('actor').value,action,reason});
+ await refreshTimers();
+}
+$('stage').onchange=()=>updateControls();
+$('timer').onclick=()=>guarded(async()=>{
+ const state=timerState().state;
+ if(state==='NEEDS_RECOVERY'){await timerAction('RECOVER','서버 재시작; 마지막 열린 구간 미측정');say('미측정 구간을 보존했습니다. 측정 재개를 누르세요.');}
+ else await timerAction(['PAUSED','INTERRUPTED'].includes(state)?'RESUME':'START');
+});
+$('pauseTimer').onclick=()=>guarded(()=>timerAction('PAUSE',$('pauseReason').value));
+$('finishTimer').onclick=()=>guarded(()=>timerAction('FINISH'));
+$('cancelTimer').onclick=()=>guarded(()=>timerAction('CANCEL'));
+$('reviewStatus').onchange=markDirty;
+$('reviewer').oninput=markDirty;
+$('save').onclick=()=>guarded(async()=>{
+ if(!validForms())return;
+ const reviewStatus=$('reviewStatus').value,reviewer=$('reviewer').value.trim();
+ if(reviewStatus==='REVIEWED'&&!reviewer)throw Error('검수 완료로 저장하려면 검수자를 선택하거나 입력하세요.');
+ busy=true;updateControls();
+ try{
+  const result=await request('/api/save/'+sid,{record:cleanClone(work),base_hash:data.base_hash,actor_ref:reviewer||'user',
+   review_status:reviewStatus,reviewer_ref:reviewer,
+   reviewed_ranges:reviewStatus==='REVIEWED'?[{start_frame_index:0,end_frame_index:data.frames.length-1}]:[]});
+  data.base_hash=result.base_hash;data.revision_id=result.revision_id;data.record=result.record;
+  data.checkpoint_stale=Boolean(data.checkpoint&&data.checkpoint.base_hash!==result.base_hash);
+  work=cleanClone(result.record);dirty=false;setSaveSelection(work);render();
+  say(result.status==='UNCHANGED'?'내용·검수 정보 변경 없음 · 새 revision을 만들지 않았습니다.':'검사 통과 · 수정 내용과 검수 정보 저장 완료 · '+result.revision_id+' · '+translate(reviewStatus));
+ }finally{busy=false;updateControls();}
+});
+$('resumeCheckpoint').onclick=()=>guarded(()=>{
+ if(!checkLeave())return;if(data.checkpoint_stale)throw Error('revision이 바뀌어 이 중간 기록을 자동 적용할 수 없습니다.');
+ work=cleanClone(data.checkpoint.record);$('frameIndex').value=data.checkpoint.cursor;dirty=true;editing=true;render();showFrame();
+ say('완료한 관찰 로그와 진행 위치를 재개했습니다. 중복 관찰을 기록하지 마세요.');
+});
+$('export').onclick=()=>guarded(async()=>{
+ if(dirty||tick!==null)throw Error('편집 내용을 저장하고 시간 측정을 마친 뒤 내보내세요.');
+ busy=true;updateControls();
+ try{const result=await request('/api/export/'+sid,{request:'USER_REVIEW_BUTTON',revision_id:data.revision_id,
+  base_hash:data.base_hash,actor_ref:$('actor').value});say('선택 저장본 5파일 '+(result.status==='REUSED'?'재사용':'내보내기 완료')+'\n'+result.path);}
+ finally{busy=false;updateControls();}
+});
+window.addEventListener('beforeunload',e=>{if(dirty||tick!==null){e.preventDefault();e.returnValue='';}});
+guarded(async()=>{catalog=await request('/api/index');$('selectionScope').textContent=({all:'전체 영상',selected:'선택 영상',batch:'이번 작업 영상'}[catalog.selection_mode]||'선택 영상')+' · '+catalog.ids.length+'개';fillBehaviors();fillSamples();await loadSample($('sample').value);});
+</script>
+</body>
+</html>

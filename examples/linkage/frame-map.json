@@ -1,0 +1,36 @@
+{
+  "format": "onc110-frame-map-v0.1",
+  "video_id": "SYNTH-0001",
+  "source_sha256": "7be0fc6dcb5d47b7e25b935ef39c6d9b95af37c6e3a0e8486bb33a512c801c8f",
+  "source_path": "data/Tier2/합성_유사행동/videos/합성 예제_001.mp4",
+  "width": 640,
+  "height": 360,
+  "frame_count": 3,
+  "first_source_ms": 5000,
+  "frames": [
+    {
+      "frame_index": 0,
+      "source_ms": 5000,
+      "player_elapsed_ms": 0,
+      "image_path": "data/Tier2/합성_유사행동/frames/합성 예제_001/frame_000000.png"
+    },
+    {
+      "frame_index": 1,
+      "source_ms": 5040,
+      "player_elapsed_ms": 40,
+      "image_path": "data/Tier2/합성_유사행동/frames/합성 예제_001/frame_000001.png"
+    },
+    {
+      "frame_index": 2,
+      "source_ms": 5080,
+      "player_elapsed_ms": 80,
+      "image_path": "data/Tier2/합성_유사행동/frames/합성 예제_001/frame_000002.png"
+    }
+  ],
+  "generation": {
+    "sampling": "EVERY_SOURCE_FRAME",
+    "resize": false,
+    "decoder_version": "SYNTHETIC-NOT-DECODED",
+    "tool_version": "synthetic-example-v0.1"
+  }
+}

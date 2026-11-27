@@ -1,0 +1,20 @@
+{
+  "source": "medication-ai-pipeline/scripts/onc110_pilot_records.py",
+  "source_sha256": "dfb3d2f4f3b4719d63cfc0848ccadbb717cc0ab7c73890ffffc6cebba6e705d0",
+  "functions": {
+    "interval_indices": "f99a01bbf1548b545d27171d8e156054a89e2765c57ef3a6521b8a5c3bcd023e",
+    "observed_indices": "a386b865c1ba4546be89d0bc220bb61e40bb26e5a6edfe49687b0078874558b6",
+    "reference_verification": "3f03ccafbe5afe4fb1ec0d0232e3825f2b2d52c7e8389513b7e2a1d6bb7c3c54",
+    "validate_record": "4edf126e72cf8a9c66b65f1522daf0c188d4888dc91aa443280d38fb2783daa5",
+    "events_csv": "d5e1815a47a33e7aa8c0980402500c390efc92a309b4d42f40449e5d2b946597"
+  },
+  "template_source": "blank_record; identity placeholders only; no field additions",
+  "checks_source": "medication-ai-pipeline/scripts/onc110_cvat.py CHECKS only; no CVAT dependency",
+  "function_ast_sha256": {
+    "interval_indices": "f7c3a29b83b3f7bee6f0ba43ac47969dd6276ccc0dab8bf846a417530cba6167",
+    "observed_indices": "68898390bff81486d3d8b45dfce790a7f4973220feccd7a5ea77c9ab962a3187",
+    "reference_verification": "93874d06a76305431bbd50a0f257950ebda9802e96d3bf6d2d969acd63b4bcc3",
+    "validate_record": "4234c314d88ac69f54f11a0936b92e579caf3212db279a9180fb426176f3641b",
+    "events_csv": "573e65daacd8642ccf3bf83b1ec3a5cdb6b46496e7e1e51b56fa723d5129ff24"
+  }
+}

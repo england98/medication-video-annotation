@@ -1,0 +1,99 @@
+{
+  "format": "onc110-video-label-v0.1",
+  "exchange_contract": false,
+  "video_id": "SYNTH-0001",
+  "source_ref": "SYNTH-0001",
+  "source_sha256": "7be0fc6dcb5d47b7e25b935ef39c6d9b95af37c6e3a0e8486bb33a512c801c8f",
+  "frame_map_ref": "data/Tier2/합성_유사행동/frames/합성 예제_001/frame-map.json",
+  "label_version": "v0.1-draft",
+  "guideline_version": "label-guide-v0.1",
+  "coverage": {
+    "annotation_status": "DRAFT",
+    "reviewed_ranges": [
+      {
+        "start_frame_index": 0,
+        "end_frame_index": 2,
+        "start_ms": 5000,
+        "end_ms": 5080
+      }
+    ],
+    "event_types": [
+      "E01",
+      "E02",
+      "E03"
+    ],
+    "exhaustive": true
+  },
+  "events": [
+    {
+      "event_id": "SYNTH-E02-1",
+      "event_type": "E02",
+      "annotation_status": "DRAFT",
+      "subject_key": null,
+      "object_key": null,
+      "interval": {
+        "start_frame_index": 0,
+        "end_frame_index": 2,
+        "start_ms": 5000,
+        "end_ms": 5080,
+        "boundary_status": "APPROXIMATE",
+        "truncated_start": null,
+        "truncated_end": null
+      },
+      "context_ranges": [],
+      "check_answers": {
+        "object_is_medication": "UNKNOWN",
+        "object_transfer_into_mouth_visible": "YES"
+      },
+      "evidence": [
+        {
+          "check": "object_is_medication",
+          "frame_index": 1,
+          "source_ms": 5040,
+          "role": "LIMITATION",
+          "note": "합성 예제: 가림/전달 근거 설명."
+        },
+        {
+          "check": "object_transfer_into_mouth_visible",
+          "frame_index": 1,
+          "source_ms": 5040,
+          "role": "OBSERVATION",
+          "note": "합성 예제: 가림/전달 근거 설명."
+        }
+      ],
+      "limitations": [
+        {
+          "check": "object_is_medication",
+          "reason": "합성 예제: 물체가 가려짐.",
+          "frame_indices": [
+            1
+          ]
+        }
+      ],
+      "links": [],
+      "reference_verification": null,
+      "verification_rule_version": "architecture-2-4-current"
+    }
+  ],
+  "observations": [],
+  "session_label": {
+    "annotation_status": "NOT_APPLICABLE",
+    "scope": "CLIP_OBSERVATION_WINDOW",
+    "completion_evidence": null,
+    "expected_result": null,
+    "supporting_event_ids": [],
+    "subject_key": null,
+    "reviewed_ranges": [],
+    "unresolved_conflicts": [],
+    "reason": "합성 클립이며 실제 세션 맥락 없음."
+  },
+  "review": {
+    "mode": "AI_ASSISTED_HUMAN_REVIEW",
+    "reviewer_ref": null,
+    "reviewed_at_kst": null,
+    "history": [],
+    "independent_review": "NOT_RUN"
+  },
+  "final_ground_truth": false,
+  "evaluation_eligible": false
+}

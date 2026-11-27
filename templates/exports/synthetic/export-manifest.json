@@ -1,0 +1,39 @@
+{
+  "format": "onc110-export-manifest-v0.1",
+  "exported_at_kst": "2026-10-17T00:00:00+09:00",
+  "purpose": "SYNTHETIC_FORMAT_EXAMPLE_NOT_A_REAL_EXPORT",
+  "video_id": "SYNTH-0001",
+  "source_sha256": "7be0fc6dcb5d47b7e25b935ef39c6d9b95af37c6e3a0e8486bb33a512c801c8f",
+  "revision_ref": "records/SYNTH-0001/revision-000000.json",
+  "revision_file_sha256": "d49304ed429b6aeb1eb7090f2d519f5631d55a7d8da386d4810d333e2b6505e6",
+  "record_format": "onc110-analysis-label-record-v0.1",
+  "label_format": "onc110-video-label-v0.1",
+  "review": {
+    "mode": "AI_ASSISTED_HUMAN_REVIEW",
+    "reviewer_ref": null,
+    "reviewed_at_kst": null,
+    "history": [],
+    "independent_review": "NOT_RUN"
+  },
+  "annotation_status": "DRAFT",
+  "final_ground_truth": false,
+  "evaluation_eligible": false,
+  "files": {
+    "record.json": {
+      "sha256": "d49304ed429b6aeb1eb7090f2d519f5631d55a7d8da386d4810d333e2b6505e6",
+      "bytes": 6496
+    },
+    "analysis.json": {
+      "sha256": "0ad8947327dcc563230e02966b93239d1d4eb3b173024917e2ad05764c5c60ad",
+      "bytes": 3031
+    },
+    "label.json": {
+      "sha256": "120098e32ad33169a3dbc186f1bcff223602c183a21eed46684f4fa8e0c73b06",
+      "bytes": 2683
+    },
+    "events.csv": {
+      "sha256": "aacba31cb3c84b0242acf2b2a78b61a53c633627e52031a591a128f102ea2a8a",
+      "bytes": 742
+    }
+  }
+}

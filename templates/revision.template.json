@@ -1,0 +1,84 @@
+{
+  "format": "onc110-analysis-label-record-v0.1",
+  "video_id": "{{video_id}}",
+  "analysis": {
+    "status": "UNANNOTATED",
+    "analyst": null,
+    "model_identifier": "NOT_OBSERVED",
+    "observation_log": [],
+    "categories": {
+      "source_and_duplicates": {
+        "status": "UNANNOTATED",
+        "observations": []
+      },
+      "people": {
+        "status": "UNANNOTATED",
+        "observations": []
+      },
+      "capture": {
+        "status": "UNANNOTATED",
+        "observations": []
+      },
+      "environment": {
+        "status": "UNANNOTATED",
+        "observations": []
+      },
+      "view_and_visibility": {
+        "status": "UNANNOTATED",
+        "observations": []
+      },
+      "behavior": {
+        "status": "UNANNOTATED",
+        "observations": []
+      },
+      "technical_quality": {
+        "status": "UNANNOTATED",
+        "observations": []
+      },
+      "evaluation_use": {
+        "status": "UNANNOTATED",
+        "observations": []
+      }
+    }
+  },
+  "label": {
+    "format": "onc110-video-label-v0.1",
+    "exchange_contract": false,
+    "video_id": "{{video_id}}",
+    "source_ref": "{{video_id}}",
+    "source_sha256": "{{source_sha256}}",
+    "frame_map_ref": "{{frame_map_ref}}",
+    "label_version": "v0.1-unannotated",
+    "guideline_version": "label-guide-v0.1",
+    "coverage": {
+      "annotation_status": "UNANNOTATED",
+      "reviewed_ranges": [],
+      "event_types": [],
+      "exhaustive": false
+    },
+    "events": [],
+    "observations": [],
+    "session_label": {
+      "annotation_status": "UNANNOTATED",
+      "scope": "CLIP_OBSERVATION_WINDOW",
+      "completion_evidence": null,
+      "expected_result": null,
+      "supporting_event_ids": [],
+      "subject_key": null,
+      "reviewed_ranges": [],
+      "unresolved_conflicts": [],
+      "reason": null
+    },
+    "review": {
+      "mode": "AI_ASSISTED_HUMAN_REVIEW",
+      "reviewer_ref": null,
+      "reviewed_at_kst": null,
+      "history": [],
+      "independent_review": "NOT_RUN"
+    },
+    "final_ground_truth": false,
+    "evaluation_eligible": false
+  },
+  "measurements": [],
+  "revision_history": []
+}

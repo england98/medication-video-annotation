@@ -1,0 +1,48 @@
+# Runtime configuration; unsupported policy overrides fail explicitly.
+# Relative paths resolve from PROJECT_ROOT, never from the caller's cwd.
+config_version = "0.1"
+project_name = "medication-video-annotation"
+timezone = "Asia/Seoul"
+
+[paths]
+data_root = "local"
+# Fill these only in local/config.toml when the relevant stage is requested.
+reference_project = ""
+source_curated_root = ""
+release_ref = ""
+
+[observation]
+sampling = "EVERY_SOURCE_FRAME"
+native_resolution = true
+image_format = "PNG"
+chunk_frames = 12
+overlap_frames = 2
+time_reference = "SOURCE_PTS_WITH_SEPARATE_PLAYER_ELAPSED_MS"
+automatic_model_calls = false
+
+[records]
+format = "onc110-analysis-label-record-v0.1"
+label_format = "onc110-video-label-v0.1"
+create_empty_per_video = false
+save_only_on_content_change = true
+first_valid_revision = "revision-000000.json"
+final_ground_truth = false
+evaluation_eligible = false
+
+[review]
+host = "127.0.0.1"
+port = 8767
+media_width_percent = 65
+record_width_percent = 35
+cvat_enabled = false
+
+[exports]
+trigger = "USER_REVIEW_UI_ONLY"
+automatic = false
+files = ["record.json", "analysis.json", "label.json", "events.csv", "export-manifest.json"]
+
+[timing]
+separate_setup_and_trial = true
+wall_timezone = "Asia/Seoul"
+duration_clock = "monotonic_per_process"
+# Non-executed stages have status NOT_RUN and seconds null in the JSON log.

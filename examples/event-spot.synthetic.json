@@ -1,0 +1,42 @@
+{
+  "format": "medication-event-spot-label-v1",
+  "video_id": "DEMO-SPOT-ONLY",
+  "revision": 0,
+  "source": {
+    "locator": "synthetic/illustration.mp4",
+    "sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+    "duration_ms": 4800,
+    "first_source_ms": 160
+  },
+  "time_axis": "PLAYER_ELAPSED_MS",
+  "target_id": "DEMO-TARGET",
+  "events": [
+    {
+      "event_id": "A001",
+      "type": "DRINKING",
+      "start_ms": 1700,
+      "end_ms": null,
+      "boundary_status": "UNRESOLVED",
+      "note": "합성 설명. 용기가 입에 닿은 뒤 화면이 끝나 종료를 고르지 못한 경우."
+    }
+  ],
+  "observed_counts": {
+    "PREPARATION": 0,
+    "MEDICATION_FORM": 0,
+    "DRINKING": 1
+  },
+  "counts_complete": false,
+  "video_judgment": "UNCERTAIN",
+  "observation": {
+    "mode": "SAMPLED_TARGETED",
+    "note": "실제 사람이나 영상 없이 작성한 형식 예제."
+  },
+  "review": {
+    "status": "AI_DRAFT",
+    "human_review": "NOT_RUN",
+    "independent_review": "NOT_RUN",
+    "final_ground_truth": false,
+    "evaluation_eligible": false
+  },
+  "development_exposure": "UNKNOWN"
+}

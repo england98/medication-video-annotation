@@ -1,0 +1,323 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>이벤트 라벨 확인</title>
+<link rel="icon" href="data:,">
+<style>
+:root{color-scheme:light;--ink:#203344;--muted:#5d6f80;--line:#dce5ec;--accent:#086c75;--bg:#f3f6f9;--panel:#fff;
+ --prep:#3f6fb5;--prep-bg:#e9f0fa;--med:#b4531a;--med-bg:#fbeee5;--drink:#0a7f76;--drink-bg:#e3f4f2;
+ --ok:#1c7a43;--ok-bg:#e4f4ea;--warn:#8f5f00;--warn-bg:#fdf3d8;--err:#9b302c;--err-bg:#fcecea}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.55 system-ui,"Malgun Gothic",sans-serif}
+button{font:inherit;color:inherit;cursor:pointer}
+button:focus-visible{outline:3px solid #43a3cf;outline-offset:2px}
+h1,h2,h3,p{margin:0}
+header{background:#17384a;color:#fff;padding:12px 20px;display:flex;gap:6px 16px;align-items:baseline;flex-wrap:wrap}
+h1{font-size:18px}
+header p{color:#c5d7df;font-size:13px}
+#behaviors{background:var(--panel);border-bottom:1px solid var(--line);padding:10px 20px;display:grid;gap:7px}
+.group{display:flex;gap:6px 10px;align-items:baseline}
+.group-name{flex:none;width:64px;font-size:12px;font-weight:700;color:var(--muted)}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chip{border:1px solid #bfccd6;background:#fff;border-radius:999px;padding:3px 11px;font-size:13px;white-space:nowrap}
+.chip:hover{background:#edf6f6}
+.chip b{font-weight:600;color:var(--muted);margin-left:5px;font-variant-numeric:tabular-nums}
+.chip[aria-pressed=true]{background:var(--accent);border-color:var(--accent);color:#fff}
+.chip[aria-pressed=true] b{color:#d3ecee}
+.layout{display:grid;grid-template-columns:270px minmax(0,1fr) 400px;gap:14px;padding:14px 20px;align-items:start}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:13px 14px}
+.card+.card{margin-top:12px}
+h2{font-size:12px;font-weight:700;color:var(--muted);margin-bottom:8px}
+#videos{padding:8px;position:sticky;top:12px;max-height:calc(100vh - 24px);overflow:auto}
+#videos h2{padding:4px 6px 0}
+.video{display:block;width:100%;text-align:left;border:0;background:none;border-radius:7px;padding:7px 8px}
+.video:hover{background:#eef4f7}
+.video[aria-current=true]{background:#dcedef;box-shadow:inset 3px 0 0 var(--accent)}
+.video .name{display:block;font-size:12.5px;font-weight:600;overflow-wrap:anywhere}
+.video .meta{display:flex;gap:6px;align-items:center;font-size:12px;color:var(--muted);margin-top:2px;flex-wrap:wrap}
+.tag{display:inline-block;border-radius:5px;padding:0 6px;font-size:12px;font-weight:600;background:#edf1f5;color:#4d6070;white-space:nowrap}
+.tag.CONFIRMED{background:var(--ok-bg);color:var(--ok)}
+.tag.UNCERTAIN,.tag.UNRESOLVED{background:var(--warn-bg);color:var(--warn)}
+.tag.bad{background:var(--err-bg);color:var(--err)}
+.title{display:flex;gap:8px;align-items:baseline;flex-wrap:wrap;margin-bottom:9px}
+.title h3{font-size:15px;overflow-wrap:anywhere}
+video{display:block;width:100%;aspect-ratio:16/9;max-height:calc(100vh - 340px);min-height:220px;background:#102536;border-radius:7px}
+.message{border-radius:7px;background:var(--err-bg);color:var(--err);padding:9px 12px;margin-bottom:9px}
+.clock{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;margin:10px 0 7px;font-size:13px;font-variant-numeric:tabular-nums}
+#status{color:var(--accent);font-weight:600}
+#timeline{position:relative;--p:0}
+.lane{display:grid;grid-template-columns:62px minmax(0,1fr);align-items:center;margin-bottom:4px}
+.lane-name{font-size:12px;color:var(--muted)}
+.track{position:relative;height:24px;background:#eef2f5;border-radius:4px}
+.seg{position:absolute;top:0;bottom:0;border:0;border-radius:3px;padding:0;color:#fff;font-size:11px;font-weight:700;overflow:hidden;min-width:4px}
+.seg:hover{filter:brightness(1.12)}
+.seg.active{box-shadow:0 0 0 2px var(--ink)}
+.seg.open-start{-webkit-mask-image:linear-gradient(to right,transparent,#000 16px);mask-image:linear-gradient(to right,transparent,#000 16px)}
+.seg.open-end{-webkit-mask-image:linear-gradient(to left,transparent,#000 16px);mask-image:linear-gradient(to left,transparent,#000 16px)}
+.seg.open-start.open-end{-webkit-mask-image:linear-gradient(to right,transparent,#000 16px,#000 calc(100% - 16px),transparent);mask-image:linear-gradient(to right,transparent,#000 16px,#000 calc(100% - 16px),transparent)}
+.t-PREPARATION{--c:var(--prep);--c-bg:var(--prep-bg)}.t-MEDICATION_FORM{--c:var(--med);--c-bg:var(--med-bg)}.t-DRINKING{--c:var(--drink);--c-bg:var(--drink-bg)}
+.seg{background:var(--c,#607283)}
+.axis{position:relative;height:18px;margin-left:62px;font-size:11px;color:var(--muted);font-variant-numeric:tabular-nums}
+.axis span{position:absolute;transform:translateX(-50%);top:2px}
+.axis span:first-child{transform:none}
+#playhead{position:absolute;top:0;bottom:18px;width:2px;background:var(--ink);pointer-events:none;left:calc(62px + (100% - 62px) * var(--p))}
+.judgment{display:flex;align-items:center;gap:10px;border-radius:8px;padding:10px 13px;background:#edf1f5}
+.judgment.CONFIRMED{background:var(--ok-bg);color:var(--ok)}
+.judgment.UNCERTAIN{background:var(--warn-bg);color:var(--warn)}
+.judgment strong{font-size:22px;line-height:1.2}
+.judgment small{font-size:12px;font-weight:600;opacity:.85}
+.tags{display:flex;gap:5px;flex-wrap:wrap;margin-top:8px}
+.counts{display:grid;grid-template-columns:repeat(3,1fr);gap:7px}
+.count{border-radius:7px;padding:6px 9px;background:var(--c-bg,#f3f6f9);color:var(--c,inherit)}
+.count strong{display:block;font-size:19px;line-height:1.25;font-variant-numeric:tabular-nums}
+.count span{font-size:12px;font-weight:600}
+.count.zero{background:#f3f6f9;color:var(--muted)}
+.counts-note{font-size:12px;color:var(--muted);margin-top:7px}
+.event{display:block;width:100%;text-align:left;background:#fff;border:1px solid var(--line);border-left:4px solid var(--c,#607283);border-radius:7px;padding:9px 11px}
+.event+.event{margin-top:8px}
+.event:hover{background:var(--c-bg,#f3f6f9)}
+.event.active{background:var(--c-bg,#f3f6f9);border-color:var(--c,#607283)}
+.event-head{display:flex;justify-content:space-between;gap:8px;align-items:baseline}
+.event-type{font-weight:700;color:var(--c,inherit)}
+.event-id{font-size:12px;font-weight:500;color:var(--muted);margin-left:5px}
+.event-play{font-size:12px;font-weight:600;color:var(--accent);white-space:nowrap}
+.event-range{font-size:13px;font-weight:600;font-variant-numeric:tabular-nums;margin:2px 0;display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.event-note{font-size:13px;margin-top:3px}
+.event-hint{font-size:12px;color:var(--warn);margin-top:3px}
+.empty{background:#f6f9fb;border:1px dashed #c8d4df;border-radius:7px;padding:12px;color:#587081;font-size:13px}
+.observation{font-size:13px}
+details summary{cursor:pointer;font-size:12px;font-weight:700;color:var(--muted)}
+dl{margin:8px 0 0;display:grid;grid-template-columns:92px minmax(0,1fr);gap:3px 8px;font-size:12px}
+dt{color:var(--muted)}dd{margin:0;overflow-wrap:anywhere}
+@media(max-width:1180px){.layout{grid-template-columns:270px minmax(0,1fr)}.labels{grid-column:2}video{max-height:none}}
+@media(max-width:760px){header,#behaviors{padding-left:16px;padding-right:16px}.layout{grid-template-columns:minmax(0,1fr);padding:12px 16px}.labels{grid-column:auto}#videos{position:relative;top:auto;max-height:260px}.group{flex-direction:column;gap:3px}.group-name{width:auto}}
+</style>
+</head>
+<body>
+<header>
+ <h1>이벤트 라벨 확인</h1>
+ <p id="scope">불러오는 중…</p>
+</header>
+<nav id="behaviors" aria-label="행동 분류"></nav>
+<div class="layout">
+ <aside id="videos" class="card" aria-label="영상 목록"></aside>
+ <section class="card">
+  <div class="title"><h3 id="videoTitle"></h3><span class="tag" id="videoBehavior"></span></div>
+  <div class="message" id="videoMessage" hidden></div>
+  <video id="player" controls muted playsinline preload="metadata"></video>
+  <div class="clock"><span id="clock">0.00초</span><span id="status"></span></div>
+  <div id="timeline"></div>
+ </section>
+ <section class="labels" id="labels" aria-label="라벨"></section>
+</div>
+<script>
+const TYPE={PREPARATION:'준비',MEDICATION_FORM:'복약형 동작',DRINKING:'음용'};
+const LANE={PREPARATION:'준비',MEDICATION_FORM:'복약형',DRINKING:'음용'};
+const JUDGMENT={CONFIRMED:'확인',UNCERTAIN:'불확실'};
+const BOUNDARY={APPROXIMATE:'경계 근사',UNRESOLVED:'경계 미확정',EXACT:'경계 확정'};
+const OBSERVATION={SAMPLED_TARGETED:'표본 관찰'};
+const SOURCE_ERROR={MISSING:'원본 영상 파일을 찾을 수 없습니다.',HASH_MISMATCH:'원본 영상의 해시가 라벨 기록과 달라 재생하지 않습니다.'};
+const $=id=>document.getElementById(id);
+const player=$('player');
+let catalog,behaviorCode,current,segment=null,seekTarget=null;
+
+function el(tag,props={},...children){
+  const node=document.createElement(tag);
+  for(const [key,value] of Object.entries(props)){
+    if(key==='class')node.className=value;
+    else if(key==='on')node.addEventListener('click',value);
+    else if(key==='style')node.style.cssText=value;
+    else if(key.startsWith('aria-')||key.startsWith('data-')||key==='title')node.setAttribute(key,value);
+    else node[key]=value;
+  }
+  node.append(...children.filter(c=>c!==null&&c!==undefined));
+  return node;
+}
+const seconds=ms=>(ms/1000).toFixed(2)+'초';
+const rangeText=e=>(e.start_ms===null?'시작 미확정':seconds(e.start_ms))+' – '+(e.end_ms===null?'종료 미확정':seconds(e.end_ms));
+const eventsOf=v=>v.record.events;
+
+function renderBehaviors(){
+  const nav=$('behaviors');nav.replaceChildren();
+  const groups=new Map();
+  for(const b of catalog.behaviors){if(!groups.has(b.group))groups.set(b.group,[]);groups.get(b.group).push(b);}
+  for(const [name,items] of groups){
+    nav.append(el('div',{class:'group'},el('span',{class:'group-name'},name),el('div',{class:'chips'},...items.map(b=>
+      el('button',{class:'chip',type:'button','aria-pressed':String(b.code===behaviorCode),title:b.code,on:()=>selectBehavior(b.code)},b.name,el('b',{},String(b.count)))))));
+  }
+}
+function selectBehavior(code,videoId){
+  behaviorCode=code;
+  document.querySelectorAll('.chip').forEach(chip=>chip.setAttribute('aria-pressed',String(chip.title===code)));
+  const list=catalog.videos.filter(v=>v.behavior_code===code);
+  renderVideos(list);
+  selectVideo(list.find(v=>v.video_id===videoId)||list[0]);
+}
+function renderVideos(list){
+  const behavior=catalog.behaviors.find(b=>b.code===behaviorCode);
+  $('videos').scrollTop=0;
+  $('videos').replaceChildren(el('h2',{},`${behavior.name} · ${list.length}개`),...list.map(v=>{
+    const j=v.record.video_judgment;
+    const summary=Object.entries(v.record.observed_counts).filter(([,n])=>n>0).map(([t,n])=>`${LANE[t]||t} ${n}`).join(' · ')||'이벤트 없음';
+    return el('button',{class:'video',type:'button','data-video':v.video_id,on:()=>selectVideo(v)},
+      el('span',{class:'name'},v.filename.replace(/\.mp4$/i,'')),
+      el('span',{class:'meta'},el('span',{class:'tag '+j},JUDGMENT[j]||j),summary));
+  }));
+}
+
+function markCurrentVideo(){
+  const box=$('videos');
+  box.querySelectorAll('.video').forEach(node=>{
+    const selected=node.dataset.video===current.video_id;
+    node.setAttribute('aria-current',String(selected));
+    if(selected&&(node.offsetTop<box.scrollTop||node.offsetTop+node.offsetHeight>box.scrollTop+box.clientHeight))box.scrollTop=node.offsetTop-8;
+  });
+}
+function selectVideo(video){
+  current=video;segment=null;seekTarget=null;
+  history.replaceState(null,'','#'+video.video_id);
+  markCurrentVideo();renderHead();renderTimeline();renderLabels();
+  const ok=video.source_status==='OK';
+  $('videoMessage').hidden=ok;
+  $('videoMessage').textContent=ok?'':(SOURCE_ERROR[video.source_status]||video.source_status);
+  player.hidden=!ok;
+  if(ok){player.src='/api/video/'+encodeURIComponent(video.video_id);}
+  else{player.removeAttribute('src');player.load();}
+  updatePlayhead();updateStatus();
+}
+function renderHead(){
+  const behavior=catalog.behaviors.find(b=>b.code===current.behavior_code);
+  $('videoTitle').textContent=current.filename;
+  $('videoBehavior').textContent=`${behavior.code} ${behavior.name}`;
+  $('videoBehavior').title='원본 분류(폴더·파일명 메타데이터)이며 라벨 판단이 아닙니다.';
+}
+function renderTimeline(){
+  const total=current.record.source.duration_ms,box=$('timeline');box.replaceChildren();
+  const types=[...new Set(eventsOf(current).map(e=>e.type))];
+  if(!types.length)box.append(el('div',{class:'lane'},el('span',{class:'lane-name'},'이벤트'),el('div',{class:'track'})));
+  for(const type of types){
+    const segs=eventsOf(current).filter(e=>e.type===type).map(e=>{
+      const start=e.start_ms??0,end=e.end_ms??total;
+      const cls=['seg','t-'+e.type,e.start_ms===null?'open-start':'',e.end_ms===null?'open-end':''].join(' ');
+      return el('button',{class:cls,type:'button',title:`${e.event_id} ${TYPE[e.type]||e.type} ${rangeText(e)}`,'aria-label':`${e.event_id} ${TYPE[e.type]||e.type} ${rangeText(e)} 재생`,
+        style:`left:${start/total*100}%;width:${Math.max(end-start,0)/total*100}%`,on:()=>playEvent(e)},e.event_id);
+    });
+    box.append(el('div',{class:'lane'},el('span',{class:'lane-name'},LANE[type]||type),el('div',{class:'track'},...segs)));
+  }
+  const step=total<=10000?1000:2000,ticks=[];
+  for(let t=0;t<total-step/2;t+=step)ticks.push(el('span',{style:`left:${t/total*100}%`},t/1000+'초'));
+  box.append(el('div',{class:'axis'},...ticks),el('div',{id:'playhead'}));
+}
+function renderLabels(){
+  const r=current.record,events=r.events,j=r.video_judgment;
+  // Every project-use spot label was user-reviewed (results report); stored review fields keep their saved values.
+  const tags=[el('span',{class:'tag'},'사용자 검수 완료')];
+  const countTypes=Object.keys(r.observed_counts);
+  const cards=events.length?events.map(e=>{
+    const hint=[e.start_ms===null?'시작 경계가 없어 영상 처음부터 재생합니다.':null,e.end_ms===null?'종료 경계가 없어 영상 끝까지 재생합니다.':null].filter(Boolean).join(' ');
+    return el('button',{class:'event t-'+e.type,type:'button','data-event':e.event_id,on:()=>playEvent(e)},
+      el('div',{class:'event-head'},el('span',{class:'event-type'},TYPE[e.type]||e.type,el('span',{class:'event-id'},e.event_id)),el('span',{class:'event-play'},'▶ 구간 재생')),
+      el('div',{class:'event-range'},rangeText(e),e.start_ms!==null&&e.end_ms!==null?el('span',{style:'font-weight:400;color:var(--muted)'},`(${seconds(e.end_ms-e.start_ms)})`):null,
+        el('span',{class:'tag '+e.boundary_status},BOUNDARY[e.boundary_status]||e.boundary_status)),
+      el('div',{class:'event-note'},e.note),hint?el('div',{class:'event-hint'},hint):null);
+  }):[el('div',{class:'empty'},'기록된 이벤트가 없습니다.')];
+  const info=[['영상 ID',current.video_id],['원본 경로',r.source.locator],['SHA-256',r.source.sha256],['길이',seconds(r.source.duration_ms)],['대상',r.target_id],['시간축',r.time_axis],['라벨 파일',current.revision_file],['라벨 형식',r.format],['작업 구분',current.batch_purpose],['개발 노출',r.development_exposure]];
+  $('labels').replaceChildren(
+    el('div',{class:'card'},el('h2',{},'최종 판단'),
+      el('div',{class:'judgment '+j},el('strong',{},JUDGMENT[j]||j),el('small',{},j)),
+      el('div',{class:'tags'},...tags)),
+    el('div',{class:'card'},el('h2',{},`탐지된 이벤트 ${events.length}건`),...cards),
+    el('div',{class:'card'},el('h2',{},'관찰 횟수'),
+      el('div',{class:'counts'},...countTypes.map(t=>el('div',{class:`count t-${t}${r.observed_counts[t]?'':' zero'}`},el('strong',{},String(r.observed_counts[t])),el('span',{},LANE[t]||t)))),
+      el('p',{class:'counts-note'},'검수에서 행동 구간과 구간 수를 확인했습니다.')),
+    el('div',{class:'card'},el('h2',{},'관찰 범위 · '+(OBSERVATION[r.observation.mode]||r.observation.mode)),el('p',{class:'observation'},r.observation.note)),
+    el('div',{class:'card'},el('details',{},el('summary',{},'원본·기록 정보'),el('dl',{},...info.flatMap(([k,v])=>[el('dt',{},k),el('dd',{},v===null||v===undefined?'없음':String(v))])))));
+}
+
+function seek(sec){seekTarget=sec;player.currentTime=sec;}
+function whenReady(){
+  return player.readyState>=1?Promise.resolve():new Promise((resolve,reject)=>{
+    player.addEventListener('loadedmetadata',resolve,{once:true});
+    player.addEventListener('error',reject,{once:true});
+  });
+}
+async function playEvent(event){
+  if(current.source_status!=='OK')return;
+  const owner=current;
+  segment={event,to:event.end_ms===null?null:event.end_ms/1000};
+  updateStatus();updateActive();
+  try{await whenReady();}catch{return;}
+  if(owner!==current)return;
+  seek((event.start_ms??0)/1000);
+  player.play().catch(()=>{});
+}
+function finishSegment(){
+  const to=segment.to;segment=null;
+  player.pause();
+  seek(to+0.001); // Land inside the last included frame (END is inclusive).
+  updateStatus('구간 재생 완료');updateActive();
+}
+function checkSegment(){
+  if(segment&&segment.to!==null&&seekTarget===null&&player.currentTime>=segment.to)finishSegment();
+}
+function updatePlayhead(){
+  if(!current)return;
+  const ms=player.currentTime*1000,total=current.record.source.duration_ms;
+  $('timeline').style.setProperty('--p',Math.min(ms/total,1));
+  $('clock').textContent=`${seconds(ms)} / ${seconds(total)}`;
+}
+function updateStatus(text){
+  $('status').textContent=segment?`${segment.event.event_id} ${TYPE[segment.event.type]||segment.event.type} 구간 재생 중 · ${rangeText(segment.event)}`:(text||'');
+}
+function updateActive(){
+  const ms=player.currentTime*1000;
+  const inside=e=>segment?segment.event===e:(ms>=(e.start_ms??0)&&(e.end_ms===null||ms<=e.end_ms+2));
+  const events=eventsOf(current);
+  document.querySelectorAll('.event').forEach(node=>{
+    const e=events.find(x=>x.event_id===node.dataset.event);
+    node.classList.toggle('active',!!e&&inside(e));
+  });
+  document.querySelectorAll('.seg').forEach(node=>{
+    const e=events.find(x=>x.event_id===node.textContent);
+    node.classList.toggle('active',!!e&&inside(e));
+  });
+}
+function tick(){
+  checkSegment();updatePlayhead();updateActive();
+  requestAnimationFrame(tick);
+}
+player.addEventListener('timeupdate',()=>{checkSegment();updatePlayhead();updateActive();}); // rAF stops in background tabs.
+player.addEventListener('seeking',()=>{
+  // A seek that we did not start (native controls) leaves segment playback.
+  if(seekTarget===null||Math.abs(player.currentTime-seekTarget)>0.02){segment=null;seekTarget=null;updateStatus();}
+});
+player.addEventListener('seeked',()=>{seekTarget=null;updatePlayhead();updateActive();});
+player.addEventListener('ended',()=>{segment=null;updateStatus('영상 끝');});
+player.addEventListener('error',()=>{
+  if(!player.getAttribute('src'))return;
+  segment=null;updateStatus();
+  $('videoMessage').hidden=false;$('videoMessage').textContent='영상을 재생할 수 없습니다.';
+});
+
+async function start(){
+  try{
+    const response=await fetch('/api/catalog');
+    catalog=await response.json();
+    if(!response.ok)throw new Error(catalog.error);
+  }catch(error){
+    $('scope').textContent='라벨을 불러오지 못했습니다: '+error.message;return;
+  }
+  if(!catalog.videos.length){$('scope').textContent='표시할 라벨이 없습니다.';return;}
+  const judged=catalog.videos.filter(v=>v.record.video_judgment==='CONFIRMED').length;
+  $('scope').textContent=`읽기 전용 · 영상 ${catalog.videos.length}개 · 확인 ${judged} · 불확실 ${catalog.videos.length-judged} · 행동 분류는 원본 폴더·파일명 메타데이터이며 라벨 판단이 아닙니다.`;
+  renderBehaviors();
+  const wanted=catalog.videos.find(v=>v.video_id===location.hash.slice(1));
+  selectBehavior(wanted?wanted.behavior_code:catalog.behaviors[0].code,wanted&&wanted.video_id);
+  requestAnimationFrame(tick);
+}
+start();
+</script>
+</body>
+</html>

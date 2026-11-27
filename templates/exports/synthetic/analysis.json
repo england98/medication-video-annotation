@@ -1,0 +1,132 @@
+{
+  "status": "DRAFT",
+  "analyst": "synthetic-author",
+  "model_identifier": "NOT_OBSERVED",
+  "observation_log": [
+    {
+      "kind": "AI_VISUAL_OBSERVATION",
+      "observer_ref": "synthetic-observer-not-a-real-observation",
+      "recorded_at_kst": "2026-10-17T00:00:00+09:00",
+      "input_set_id": "SYNTH-INPUT",
+      "start_frame_index": 0,
+      "end_frame_index": 2,
+      "display_width": 640,
+      "display_height": 360,
+      "note": "형식 설명용 가상 관찰. 실제 영상 관찰/AI 수행 결과가 아니다."
+    }
+  ],
+  "categories": {
+    "source_and_duplicates": {
+      "status": "DRAFT",
+      "observations": [
+        {
+          "basis": "DIRECT_OBSERVATION",
+          "note": "합성 설명용 source_and_duplicates; 실제 판단 아님.",
+          "frame_indices": [
+            0,
+            1,
+            2
+          ]
+        }
+      ]
+    },
+    "people": {
+      "status": "DRAFT",
+      "observations": [
+        {
+          "basis": "DIRECT_OBSERVATION",
+          "note": "합성 설명용 people; 실제 판단 아님.",
+          "frame_indices": [
+            0,
+            1,
+            2
+          ]
+        }
+      ]
+    },
+    "capture": {
+      "status": "DRAFT",
+      "observations": [
+        {
+          "basis": "DIRECT_OBSERVATION",
+          "note": "합성 설명용 capture; 실제 판단 아님.",
+          "frame_indices": [
+            0,
+            1,
+            2
+          ]
+        }
+      ]
+    },
+    "environment": {
+      "status": "DRAFT",
+      "observations": [
+        {
+          "basis": "DIRECT_OBSERVATION",
+          "note": "합성 설명용 environment; 실제 판단 아님.",
+          "frame_indices": [
+            0,
+            1,
+            2
+          ]
+        }
+      ]
+    },
+    "view_and_visibility": {
+      "status": "DRAFT",
+      "observations": [
+        {
+          "basis": "DIRECT_OBSERVATION",
+          "note": "합성 설명용 view_and_visibility; 실제 판단 아님.",
+          "frame_indices": [
+            0,
+            1,
+            2
+          ]
+        }
+      ]
+    },
+    "behavior": {
+      "status": "DRAFT",
+      "observations": [
+        {
+          "basis": "DIRECT_OBSERVATION",
+          "note": "합성 설명용 behavior; 실제 판단 아님.",
+          "frame_indices": [
+            0,
+            1,
+            2
+          ]
+        }
+      ]
+    },
+    "technical_quality": {
+      "status": "DRAFT",
+      "observations": [
+        {
+          "basis": "DIRECT_OBSERVATION",
+          "note": "합성 설명용 technical_quality; 실제 판단 아님.",
+          "frame_indices": [
+            0,
+            1,
+            2
+          ]
+        }
+      ]
+    },
+    "evaluation_use": {
+      "status": "DRAFT",
+      "observations": [
+        {
+          "basis": "DIRECT_OBSERVATION",
+          "note": "합성 설명용 evaluation_use; 실제 판단 아님.",
+          "frame_indices": [
+            0,
+            1,
+            2
+          ]
+        }
+      ]
+    }
+  }
+}
