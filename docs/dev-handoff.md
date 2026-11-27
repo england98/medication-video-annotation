@@ -1,8 +1,10 @@
-# 새 행동 의미 DEV 인수본 v0.1
+# 개발용 인수본 규격 v0.1
 
-`onc110-behavior-dev-handoff-v0.1`은 데이터 작업공간에서 명시적으로 선택한 검수 revision을 고정하는 전달 규격이다. pipeline과 합의된 공동 계약, 학습 형식, 독립 TEST 정답 또는 실제 추론 연결 완료가 아니다. v0.1 5파일 export와 `read_release`는 그대로 유지하며 새 프로필을 계속 거부한다.
+검수를 마친 라벨을 모델 개발 쪽에 넘길 때 쓰는 전달 묶음(인수본)의 규격이다. 사용자가 고른 영상의 검수 완료 revision과 프레임 대응표를 바이트 그대로 한 폴더에 복사하고, 목록(manifest)과 그 SHA-256으로 묶음을 고정한다. 받는 쪽은 이 해시로 묶음이 바뀌지 않았는지와 원본·프레임·검수의 연결을 검사한 뒤 읽기 전용으로 사용한다. 라벨을 고치면 기존 묶음을 덮어쓰지 않고 새 묶음을 만든다. [결과 보고서](../reports/medication-drinking/project-results.md#6-개발-노출)의 개발용 인수본(4·20·40개)은 이 규격으로 발행했다.
 
-사용자 명시 발행 요청과 실제 전체 CLIP 내용 확인의 근거가 필요하다. 공통 통합 검수 저장으로 REVIEWED가 된 revision만 선택한다. 초안 채택 의견만으로 검수 범위·EXACT 경계·실제 삼킴·독립 검수·평가 자격을 만들어 넣지 않는다. 실제 과거 검토 시각/시간이 없으면 null로 남기고 서버의 저장 시각과 구분한다. 검수 타이머 미사용 상태는 NOT_RUN이며 저장된 검수 상태와 독립적이다.
+형식 ID는 `onc110-behavior-dev-handoff-v0.1`이다. 모델 개발 파이프라인(별도 프로젝트)과 합의한 공동 계약이나 학습 형식은 아니며, 실제 추론 연결은 이 범위에 포함하지 않는다. v0.1 5파일 export와 `read_release`는 그대로 유지하며 v0.2 프로필을 계속 거부한다.
+
+사용자 명시 발행 요청과 실제 전체 CLIP 내용 확인의 근거가 필요하다. 공통 통합 검수 저장으로 REVIEWED가 된 revision만 선택한다. 초안 채택 의견만으로 검수 범위·EXACT 경계·실제 삼킴을 만들어 넣지 않는다. 실제 과거 검토 시각/시간이 없으면 null로 남기고 서버의 저장 시각과 구분한다. 검수 타이머 미사용 상태는 NOT_RUN이며 저장된 검수 상태와 독립적이다.
 
 ## 구조와 루트
 
@@ -58,7 +60,7 @@ local/handoffs/<handoff_id>/
 | map_alias | object/null | 이관만 `{alias, target, basis: dataset_entry.imported_revision}`; 나머지 null |
 | map_summary | object | video_id/source_sha256/frame_count/width/height/first_source_ms; 지도와 일치 |
 | annotation | object | 아래 계보/범위 요약; record와 정확 일치 검사 |
-| development_exposure | string | `DEV_EXPOSED`; 독립 평가 자격 아님 |
+| development_exposure | string | `DEV_EXPOSED`(개발 노출) |
 | groups | object | person/capture/derived 각각 `{status, value, basis}`. status=`METADATA_CODE`/`CANDIDATE`/`UNKNOWN`; UNKNOWN 값은 null. 인물 코드를 실명/실제 동일인 확인으로 확대하지 않음 |
 
 `annotation`의 필수 필드는 source_actor_ids(string[]), observed_range(전체 원본 frame_index 범위), scopes(assessment_id/scope/source_actor_id/range/status 배열), record_pointer(`/label/behavior_annotation`), review, authoring, basis, guideline_ref다. review/authoring/basis/guideline_ref는 원래 블록의 값을 그대로 보존한다. 실제 모델 ID UNCONFIRMED와 raw_output NOT_CAPTURED도 승격하지 않는다. 질문·답·근거·구간/PTS·관계·상충/보조사항의 정본은 snapshot record 하나다.
