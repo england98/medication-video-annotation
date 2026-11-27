@@ -39,15 +39,21 @@ def source_status(path, expected_sha256):
     return "OK" if file_hash(path) == expected_sha256 else "HASH_MISMATCH"
 
 
-def load_catalog(label_root):
-    """Return the browser catalog and the verified source path of each playable video."""
+def load_catalog(label_root, source_root=None):
+    """Return the browser catalog and the verified source path of each playable video.
+
+    `source_root` overrides the data collection root recorded in the latest event-spot run
+    (useful after the source folders move or are restored elsewhere).
+    """
     label_root = Path(label_root)
     summaries = sorted(
         (read(path) for path in label_root.glob("runs/*/summary.json")),
         key=lambda summary: summary["started_at_kst"],
     )
     require(summaries, f"No event-spot run summary under {label_root}")
-    data_root = Path(summaries[-1]["data_root"]).resolve(strict=True)
+    data_root = Path(source_root or summaries[-1]["data_root"])
+    require(data_root.is_dir(), f"Source root not found: {data_root}; pass --source-root")
+    data_root = data_root.resolve()
     purposes = {e["video_id"]: e["batch_purpose"] for s in summaries for e in s["entries"]}
     taxonomy = load_taxonomy(data_root)
     videos, paths, behaviors = [], {}, {}
@@ -82,8 +88,8 @@ def load_catalog(label_root):
     return {"behaviors": ordered, "videos": videos}, paths
 
 
-def make_viewer_server(label_root, port=8769):
-    state = {"loaded": load_catalog(label_root)}
+def make_viewer_server(label_root, port=8769, source_root=None):
+    state = {"loaded": load_catalog(label_root, source_root)}
 
     class Handler(LocalHandler):
         def log_message(self, *_):
@@ -98,7 +104,7 @@ def make_viewer_server(label_root, port=8769):
                 if parts == [""]:
                     self.respond(WEB.read_bytes(), content_type="text/html; charset=utf-8")
                 elif parts == ["api", "catalog"]:
-                    state["loaded"] = load_catalog(label_root)
+                    state["loaded"] = load_catalog(label_root, source_root)
                     self.respond(state["loaded"][0])
                 elif len(parts) == 3 and parts[:2] == ["api", "video"]:
                     source = state["loaded"][1].get(parts[2])

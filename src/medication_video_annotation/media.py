@@ -73,6 +73,55 @@ def verify_prepared(root, item):
     return mapping
 
 
+def restore_frames(root, item):
+    """Re-create missing frame PNGs from the source video; every file must match its recorded hash.
+
+    Frame images are derived data: a slim backup may drop them and keep the video, the frame map
+    and the per-frame SHA-256. Existing images are verified, never overwritten, and the frame map,
+    checkpoint and records are not written.
+    """
+    root = Path(root).resolve()
+    mapping = read(relative(root, item["frame_map_ref"]))
+    validate_link(root, item, mapping)
+    frames = mapping["frames"]
+    require(all(f.get("image_sha256") for f in frames), "Frame map lacks image hashes")
+    missing = {}
+    for frame in frames:
+        target = relative(root, frame["image_path"])
+        if target.exists():
+            require(file_hash(target) == frame["image_sha256"], "Existing frame changed; not restoring")
+        else:
+            missing[frame["frame_index"]] = target
+    restored = len(missing)
+    if missing:
+        source = relative(root, item["source_path"])
+        require(file_hash(source) == item["source_sha256"], "Source bytes changed")
+        with writer_lock(relative(root, item["frame_map_ref"]).parent), av.open(str(source)) as container:
+            for i, frame in enumerate(container.decode(video=0)):
+                if i not in missing:
+                    continue
+                info = frames[i]
+                require(
+                    frame.pts == info["pts"] and str(frame.time_base) == info["time_base"],
+                    "Decoded frame differs from the frame map",
+                )
+                target = missing.pop(i)
+                temporary = target.with_suffix(".pending.png")
+                frame.to_image().convert("RGB").save(temporary, compress_level=1)
+                if file_hash(temporary) != info["image_sha256"]:
+                    temporary.unlink()
+                    raise ValueError(
+                        f"Re-created frame {i} differs from its recorded hash; "
+                        f"check the PyAV/Pillow versions ({mapping['generation']['decoder_version']})"
+                    )
+                os.rename(temporary, target)
+                if not missing:
+                    break
+        require(not missing, "Source ended before all missing frames were restored")
+    verify_prepared(root, item)
+    return {"video_id": item["video_id"], "frames": len(frames), "restored": restored}
+
+
 def prepare_one(root, item, run):
     root = Path(root).resolve()
     sid = identifier(item["video_id"])

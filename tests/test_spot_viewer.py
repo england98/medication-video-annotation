@@ -127,6 +127,17 @@ def test_locator_cannot_escape_data_root(spot, locator):
         load_catalog(label_root)
 
 
+def test_source_root_override_after_sources_move(spot, tmp_path):
+    data_root, label_root, _ = spot
+    moved = tmp_path / "moved-data"
+    data_root.rename(moved)
+    with pytest.raises(ValueError, match="pass --source-root"):
+        load_catalog(label_root)
+    catalog, paths = load_catalog(label_root, source_root=moved)
+    assert {v["source_status"] for v in catalog["videos"]} == {"OK"}
+    assert set(paths) == {"SRC-MED", "SRC-RAW"}
+
+
 def test_unsupported_label_format_is_refused(spot):
     _, label_root, _ = spot
     path = label_root / "records/SRC-MED/revision-000000.json"

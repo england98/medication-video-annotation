@@ -49,10 +49,19 @@ uv run --locked python -X utf8 -m medication_video_annotation --data-root local/
 # 지정 영상만 열기: .\review.cmd --ids VIDEO_ID
 # 공통 검수 서버 종료: .\review.cmd stop
 .\spot-view.cmd --no-open
+# 원본 영상 폴더를 옮겼으면: .\spot-view.cmd --source-root <데이터 수집 루트>
 # 시점 라벨 화면 종료: Ctrl+C
 ```
 
 공통 형식 화면은 기본 포트 8768에서 정본을 읽는다. 로컬 사용자는 검수 범위·검수자와 수정값을 한 revision에 저장할 수 있다. 시점 라벨 화면은 기본 포트 8769에서 읽기 전용으로 동작한다. 이벤트를 선택해 구간을 재생하고, 경계 또는 원본을 읽을 수 없을 때 표시되는 상태를 확인한다. 시점 라벨의 합성 JSON은 문서 예시용으로 제공한다.
+
+프레임 PNG는 원본 영상에서 만든 파생 자료다. 백업 등에서 프레임을 빼 두었다면 공통 형식 화면을 열기 전에 다시 만든다. 다시 만든 각 프레임은 프레임 대응표에 기록된 SHA-256과 일치해야 하며, 이미 있는 파일은 덮어쓰지 않는다.
+
+```powershell
+$env:PYTHONPATH = 'src'
+.\.venv\Scripts\python.exe -X utf8 -m medication_video_annotation --data-root local restore-frames --ids VIDEO_ID
+# 전체: --all
+```
 
 ## 자료 범위
 

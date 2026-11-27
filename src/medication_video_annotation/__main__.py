@@ -44,6 +44,14 @@ def main():
     spot_view = sub.add_parser("spot-view", help="Read-only viewer for event-spot draft labels")
     spot_view.add_argument("--port", type=int, default=8769)
     spot_view.add_argument("--no-open", action="store_true", help="Do not open a browser")
+    spot_view.add_argument("--source-root", type=Path,
+                           help="Data collection root holding the source videos "
+                                "(default: data_root of the latest event-spot run)")
+    restore = sub.add_parser("restore-frames",
+                             help="Re-create missing frame PNGs from source videos, hash-checked")
+    restore_selection = restore.add_mutually_exclusive_group(required=True)
+    restore_selection.add_argument("--all", dest="all_videos", action="store_true")
+    restore_selection.add_argument("--ids", nargs="+")
     author = sub.add_parser("author")
     author.add_argument("--run", type=Path, required=True)
     author.add_argument("--id", required=True)
@@ -98,7 +106,7 @@ def main():
     project = Path(__file__).resolve().parents[2]
     root = args.data_root or project / config.get("paths", {}).get("data_root", "local")
     root = root.resolve()
-    if args.command in {"prepare", "save", "checkpoint", "author"}:
+    if args.command in {"prepare", "save", "checkpoint", "author", "restore-frames"}:
         require(
             not (root / "service/.writer.lock").exists(),
             "Stop this data root's review server before CLI writes; use the review UI while serving",
@@ -108,7 +116,7 @@ def main():
     elif args.command == "spot-view":
         from .spot_viewer import make_viewer_server
 
-        server = make_viewer_server(root / "event-spot", args.port)
+        server = make_viewer_server(root / "event-spot", args.port, source_root=args.source_root)
         url = f"http://127.0.0.1:{server.server_port}/"
         print(f"{url} | read-only | Ctrl+C to stop", flush=True)
         if not args.no_open:
@@ -206,7 +214,16 @@ def main():
                   "ids": checked["manifest"]["selected_ids"], "records": len(checked["records"])}
     else:
         items = {v["video_id"]: v for v in load_index(root)}
-        if args.command == "validate":
+        if args.command == "restore-frames":
+            from .media import restore_frames
+
+            ids = list(items) if args.all_videos else args.ids
+            require(set(ids) <= set(items), "Unknown selected ID")
+            with writer_lock(root / "service"):
+                results = [restore_frames(root, items[sid]) for sid in ids]
+            result = {"status": "PASS", "videos": len(results),
+                      "restored_frames": sum(r["restored"] for r in results), "results": results}
+        elif args.command == "validate":
             require(set(args.ids) <= set(items), "Unknown selected ID")
             for sid in args.ids:
                 mapping = verify_prepared(root, items[sid])
